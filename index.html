@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ATTACK MODE — THORFINN</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500;700&family=Barlow+Condensed:wght@400;600;700;900&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ─── TOKENS ─────────────────────────────────────── */
+    :root {
+      --red:        #e3000f;
+      --red-dim:    #8b000a;
+      --red-glow:   rgba(227,0,15,0.35);
+      --white:      #f0ece3;
+      --off:        #a09a90;
+      --bg:         #0a0a09;
+      --bg2:        #111110;
+      --bg3:        #1a1a18;
+      --border:     #2a2a27;
+      --text:       #f0ece3;
+      --text-dim:   #6b6660;
+      --green:      #2dba4e;
+      --yellow:     #f5c842;
+      --font-display: 'Bebas Neue', sans-serif;
+      --font-ui:      'Barlow Condensed', sans-serif;
+      --font-mono:    'IBM Plex Mono', monospace;
+    }
+    [data-theme="light"] {
+      --bg:        #f5f0e8;
+      --bg2:       #ede8df;
+      --bg3:       #e3ddd4;
+      --border:    #ccc8be;
+      --text:      #111110;
+      --text-dim:  #7a7570;
+      --off:       #5a5550;
+      --red-glow:  rgba(227,0,15,0.18);
+    }
+
+    /* ─── RESET ──────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 14px;
+      line-height: 1.6;
+      min-height: 100vh;
+      transition: background 0.3s, color 0.3s;
+      overflow-x: hidden;
+    }
+
+    /* ─── SCAN-LINE OVERLAY ───────────────────────────── */
+    body::before {
+      content: '';
+      pointer-events: none;
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,0.04) 2px,
+        rgba(0,0,0,0.04) 4px
+      );
+      z-index: 9999;
+      opacity: 0.5;
+    }
+
+    /* ─── LAYOUT ─────────────────────────────────────── */
+    .shell {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 24px 20px 80px;
+    }
+
+    /* ─── TOP BAR ────────────────────────────────────── */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 14px;
+      margin-bottom: 40px;
+    }
+    .topbar-left {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: 0.1em;
+    }
+    .topbar-left span { color: var(--red); }
+    .topbar-right { display: flex; gap: 10px; align-items: center; }
+    .theme-btn {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--text);
+      cursor: pointer;
+      padding: 6px 12px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      transition: all 0.15s;
+    }
+    .theme-btn:hover { border-color: var(--red); color: var(--red); }
+
+    /* ─── HERO HEADER ────────────────────────────────── */
+    .hero {
+      text-align: center;
+      margin-bottom: 44px;
+    }
+    .hero-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.25em;
+      color: var(--red);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+    .hero-name {
+      font-family: var(--font-display);
+      font-size: clamp(52px, 12vw, 110px);
+      line-height: 0.92;
+      letter-spacing: 0.02em;
+      color: var(--text);
+      text-transform: uppercase;
+    }
+    .hero-name em {
+      color: var(--red);
+      font-style: normal;
+      text-shadow: 0 0 40px var(--red-glow);
+    }
+    .hero-sub {
+      font-family: var(--font-ui);
+      font-size: 15px;
+      letter-spacing: 0.2em;
+      color: var(--text-dim);
+      margin-top: 10px;
+      text-transform: uppercase;
+    }
+
+    /* ─── ATTACK TOGGLE ──────────────────────────────── */
+    .attack-zone {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 50px;
+    }
+    .attack-btn {
+      position: relative;
+      cursor: pointer;
+      border: 2px solid var(--red);
+      background: transparent;
+      color: var(--red);
+      font-family: var(--font-display);
+      font-size: clamp(28px, 6vw, 52px);
+      letter-spacing: 0.08em;
+      padding: 20px 52px;
+      text-transform: uppercase;
+      transition: all 0.2s;
+      outline: none;
+      overflow: hidden;
+    }
+    .attack-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--red);
+      transform: translateX(-100%);
+      transition: transform 0.2s ease;
+      z-index: 0;
+    }
+    .attack-btn:hover::before { transform: translateX(0); }
+    .attack-btn:hover { color: #fff; box-shadow: 0 0 30px var(--red-glow); }
+    .attack-btn span { position: relative; z-index: 1; }
+
+    .attack-btn.active {
+      background: var(--red);
+      color: #fff;
+      box-shadow: 0 0 50px var(--red-glow), 0 0 100px rgba(227,0,15,0.15);
+      animation: pulse-red 2s infinite;
+    }
+    .attack-btn.active::before { transform: translateX(0); }
+    @keyframes pulse-red {
+      0%, 100% { box-shadow: 0 0 30px var(--red-glow); }
+      50%       { box-shadow: 0 0 70px var(--red-glow), 0 0 120px rgba(227,0,15,0.2); }
+    }
+
+    .attack-status {
+      margin-top: 14px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+    .attack-status.on { color: var(--red); }
+    .attack-timer {
+      font-family: var(--font-display);
+      font-size: 42px;
+      letter-spacing: 0.05em;
+      color: var(--text);
+      margin-top: 6px;
+    }
+    .attack-timer.on { color: var(--red); text-shadow: 0 0 20px var(--red-glow); }
+
+    /* ─── QUOTE TICKER ───────────────────────────────── */
+    .quote-bar {
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--red);
+      padding: 14px 18px;
+      margin-bottom: 40px;
+      background: var(--bg2);
+      position: relative;
+    }
+    .quote-bar p {
+      font-family: var(--font-ui);
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: var(--text);
+      line-height: 1.4;
+    }
+    .quote-bar cite {
+      display: block;
+      margin-top: 6px;
+      font-size: 11px;
+      font-style: normal;
+      color: var(--red);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+    }
+    .quote-next {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      cursor: pointer;
+      font-size: 20px;
+      line-height: 1;
+      transition: color 0.15s;
+    }
+    .quote-next:hover { color: var(--red); }
+
+    /* ─── STATS ROW ──────────────────────────────────── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 40px;
+    }
+    .stat-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      padding: 18px 16px;
+      text-align: center;
+    }
+    .stat-num {
+      font-family: var(--font-display);
+      font-size: 48px;
+      line-height: 1;
+      color: var(--red);
+    }
+    .stat-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    /* ─── SECTION HEADER ─────────────────────────────── */
+    .section {
+      margin-bottom: 40px;
+    }
+    .section-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 10px;
+    }
+    .section-head h2 {
+      font-family: var(--font-display);
+      font-size: 26px;
+      letter-spacing: 0.06em;
+      color: var(--text);
+      text-transform: uppercase;
+    }
+    .section-head .tag {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      color: var(--red);
+      border: 1px solid var(--red);
+      padding: 2px 7px;
+      text-transform: uppercase;
+    }
+
+    /* ─── SCROLL SHAME ───────────────────────────────── */
+    .shame-zone { text-align: center; }
+    .shame-btn {
+      cursor: pointer;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      font-family: var(--font-ui);
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      padding: 14px 32px;
+      text-transform: uppercase;
+      transition: all 0.15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .shame-btn:hover {
+      background: #1a0002;
+      border-color: var(--red);
+      color: var(--red);
+    }
+    .shame-count {
+      font-family: var(--font-display);
+      font-size: 80px;
+      line-height: 1;
+      color: var(--border);
+      margin: 10px 0 4px;
+      transition: color 0.3s;
+    }
+    .shame-count.hot { color: var(--red); }
+    .shame-msg {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-dim);
+      min-height: 20px;
+      transition: all 0.2s;
+      letter-spacing: 0.05em;
+    }
+    .shame-msg.show { color: var(--red); }
+    .shame-week {
+      margin-top: 8px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: 0.08em;
+    }
+    .shame-week span { color: var(--yellow); }
+
+    /* ─── LEARNING LOG ───────────────────────────────── */
+    .log-form { display: flex; flex-direction: column; gap: 10px; }
+    .log-form input,
+    .log-form textarea {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      padding: 12px 14px;
+      outline: none;
+      transition: border-color 0.15s;
+      resize: vertical;
+    }
+    .log-form input::placeholder,
+    .log-form textarea::placeholder { color: var(--text-dim); }
+    .log-form input:focus,
+    .log-form textarea:focus { border-color: var(--red); }
+    .log-form textarea { min-height: 90px; }
+    .log-row { display: flex; gap: 10px; }
+    .log-row input { flex: 1; }
+    .btn-primary {
+      cursor: pointer;
+      background: var(--red);
+      border: 2px solid var(--red);
+      color: #fff;
+      font-family: var(--font-ui);
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      padding: 12px 24px;
+      text-transform: uppercase;
+      transition: all 0.15s;
+    }
+    .btn-primary:hover {
+      background: transparent;
+      color: var(--red);
+    }
+    .btn-ghost {
+      cursor: pointer;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      padding: 8px 16px;
+      text-transform: uppercase;
+      transition: all 0.15s;
+    }
+    .btn-ghost:hover { border-color: var(--red); color: var(--red); }
+
+    /* ─── LOG ENTRIES ────────────────────────────────── */
+    .log-entries { margin-top: 20px; display: flex; flex-direction: column; gap: 10px; }
+    .log-entry {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--border);
+      padding: 14px 16px;
+      position: relative;
+      transition: border-color 0.15s;
+      animation: slideIn 0.2s ease;
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .log-entry:hover { border-left-color: var(--red); }
+    .log-entry-title {
+      font-family: var(--font-ui);
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .log-entry-body {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-dim);
+      line-height: 1.55;
+    }
+    .log-entry-meta {
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .log-entry-date {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-dim);
+      letter-spacing: 0.08em;
+    }
+    .log-entry-delete {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-dim);
+      font-size: 14px;
+      line-height: 1;
+      transition: color 0.15s;
+      padding: 0 4px;
+    }
+    .log-entry-delete:hover { color: var(--red); }
+    .log-empty {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-dim);
+      letter-spacing: 0.06em;
+      padding: 24px 0;
+      text-align: center;
+      border: 1px dashed var(--border);
+    }
+
+    /* ─── DAILY GOALS ────────────────────────────────── */
+    .goals-add { display: flex; gap: 10px; }
+    .goals-add input { flex: 1; }
+    .goals-list { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+    .goal-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      padding: 12px 14px;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .goal-item:hover { border-color: var(--red); }
+    .goal-item.done { opacity: 0.45; }
+    .goal-check {
+      width: 18px;
+      height: 18px;
+      border: 2px solid var(--border);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: var(--green);
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .goal-item.done .goal-check {
+      border-color: var(--green);
+      background: rgba(45,186,78,0.12);
+    }
+    .goal-text {
+      font-family: var(--font-ui);
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      flex: 1;
+    }
+    .goal-item.done .goal-text {
+      text-decoration: line-through;
+      color: var(--text-dim);
+    }
+    .goal-del {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-dim);
+      font-size: 14px;
+      transition: color 0.15s;
+      padding: 0 4px;
+    }
+    .goal-del:hover { color: var(--red); }
+    .goals-progress {
+      margin-top: 12px;
+      height: 4px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+    .goals-bar {
+      height: 100%;
+      background: var(--green);
+      transition: width 0.4s ease;
+    }
+    .goals-pct {
+      margin-top: 6px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: 0.08em;
+    }
+
+    /* ─── FOOTER ─────────────────────────────────────── */
+    .footer {
+      margin-top: 60px;
+      border-top: 1px solid var(--border);
+      padding-top: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .footer-left {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: 0.06em;
+    }
+    .footer-left span { color: var(--red); }
+    .reset-btn {
+      cursor: pointer;
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      padding: 6px 12px;
+      text-transform: uppercase;
+      transition: all 0.15s;
+    }
+    .reset-btn:hover { border-color: var(--red); color: var(--red); }
+
+    /* ─── ATTACK MODE ACTIVE OVERLAY ─────────────────── */
+    .mode-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--red), #ff4444, var(--red));
+      background-size: 200% 100%;
+      animation: slide-grad 2s linear infinite;
+      z-index: 10000;
+    }
+    .mode-overlay.show { display: block; }
+    @keyframes slide-grad {
+      0%   { background-position: 0% 0%; }
+      100% { background-position: -200% 0%; }
+    }
+
+    /* ─── RESPONSIVE ─────────────────────────────────── */
+    @media (max-width: 520px) {
+      .stats-row { grid-template-columns: repeat(3, 1fr); }
+      .stat-num  { font-size: 36px; }
+      .log-row   { flex-direction: column; }
+      .goals-add { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <div class="mode-overlay" id="modeOverlay"></div>
+
+  <div class="shell">
+
+    <!-- TOP BAR -->
+    <div class="topbar">
+      <div class="topbar-left">SYS:<span>ATTACK_MODE_v1.0</span> &nbsp;|&nbsp; OPERATOR:<span>YASH_BOSS</span></div>
+      <div class="topbar-right">
+        <button class="theme-btn" onclick="toggleTheme()">◐ TOGGLE THEME</button>
+      </div>
+    </div>
+
+    <!-- HERO -->
+    <div class="hero">
+      <div class="hero-label">// personal operating system //</div>
+      <div class="hero-name">YASH<br><em>BOSS</em></div>
+      <div class="hero-sub">stop scrolling — start winning</div>
+    </div>
+
+    <!-- ATTACK TOGGLE -->
+    <div class="attack-zone">
+      <button class="attack-btn" id="attackBtn" onclick="toggleAttack()">
+        <span id="attackBtnText">⚡ ACTIVATE ATTACK MODE</span>
+      </button>
+      <div class="attack-status" id="attackStatus">● STANDBY — YOU'RE WASTING TIME</div>
+      <div class="attack-timer" id="attackTimer">00:00:00</div>
+    </div>
+
+    <!-- MOTIVATIONAL QUOTE -->
+    <div class="quote-bar">
+      <p id="quoteText"></p>
+      <cite id="quoteAuthor"></cite>
+      <button class="quote-next" onclick="nextQuote()" title="Next quote">→</button>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-num" id="statStreak">0</div>
+        <div class="stat-label">🔥 Day Streak</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="statSessions">0</div>
+        <div class="stat-label">⚡ Attack Sessions</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="statShame">0</div>
+        <div class="stat-label">💀 Scroll Shames</div>
+      </div>
+    </div>
+
+    <!-- DAILY GOALS -->
+    <div class="section">
+      <div class="section-head">
+        <h2>Daily Targets</h2>
+        <span class="tag">TODAY</span>
+      </div>
+      <div class="goals-add">
+        <input type="text" id="goalInput" placeholder="Add a target... (e.g. Solve 2 DSA problems)" onkeydown="if(event.key==='Enter')addGoal()" />
+        <button class="btn-primary" onclick="addGoal()">ADD</button>
+      </div>
+      <div class="goals-list" id="goalsList"></div>
+      <div class="goals-progress"><div class="goals-bar" id="goalsBar"></div></div>
+      <div class="goals-pct" id="goalsPct">0 / 0 COMPLETED</div>
+    </div>
+
+    <!-- SCROLL SHAME -->
+    <div class="section">
+      <div class="section-head">
+        <h2>Scroll Shame</h2>
+        <span class="tag">CONFESS</span>
+      </div>
+      <div class="shame-zone">
+        <div class="shame-count" id="shameTodayCount">0</div>
+        <div class="shame-msg" id="shameMsg">press the button when you catch yourself scrolling</div>
+        <button class="shame-btn" onclick="addShame()">
+          📵 I WASTED TIME SCROLLING
+        </button>
+        <div class="shame-week">THIS WEEK: <span id="shameWeekCount">0</span> SCROLL SHAMES</div>
+      </div>
+    </div>
+
+    <!-- LEARNING LOG -->
+    <div class="section">
+      <div class="section-head">
+        <h2>Learning Log</h2>
+        <span class="tag" id="logCount">0 ENTRIES</span>
+      </div>
+      <div class="log-form">
+        <div class="log-row">
+          <input type="text" id="logTitle" placeholder="What did you learn? (e.g. Binary Search Trees)" />
+          <button class="btn-primary" onclick="addLog()">LOG IT</button>
+        </div>
+        <textarea id="logBody" placeholder="Expand on it... key insight, how it applies, what to revisit."></textarea>
+      </div>
+      <div class="log-entries" id="logEntries"></div>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="footer">
+      <div class="footer-left">BUILT FOR <span>YASH BOSS</span> — NO EXCUSES, ONLY EXECUTION</div>
+      <button class="reset-btn" onclick="resetDay()">↺ RESET DAY</button>
+    </div>
+
+  </div><!-- /shell -->
+
+  <script>
+    /* ───── STATE ───────────────────────────────────────── */
+    let attackActive  = false;
+    let attackStart   = null;
+    let timerInterval = null;
+
+    /* ───── QUOTES ──────────────────────────────────────── */
+    const quotes = [
+      { text: "You don't rise to the level of your goals. You fall to the level of your systems.", author: "James Clear" },
+      { text: "Hard work beats talent when talent doesn't work hard.", author: "Tim Notke" },
+      { text: "The man who moves a mountain begins by carrying small stones.", author: "Confucius" },
+      { text: "Every hour you scroll is an hour someone else is building their future.", author: "ATTACK MODE" },
+      { text: "Discipline is the bridge between goals and accomplishment.", author: "Jim Rohn" },
+      { text: "You have the same 24 hours as everyone who made it. Use them.", author: "ATTACK MODE" },
+      { text: "The successful warrior is the average man with laser-like focus.", author: "Bruce Lee" },
+      { text: "Stop waiting for motivation. Start building discipline.", author: "ATTACK MODE" },
+      { text: "Either you run the day or the day runs you.", author: "Jim Rohn" },
+      { text: "The cost of wasting today is paid tomorrow. With interest.", author: "ATTACK MODE" },
+      { text: "Success is nothing more than a few simple disciplines, practiced every day.", author: "Jim Rohn" },
+      { text: "Your future self is watching you right now through your memories.", author: "ATTACK MODE" },
+    ];
+    let quoteIdx = 0;
+
+    function renderQuote() {
+      const q = quotes[quoteIdx % quotes.length];
+      document.getElementById('quoteText').textContent   = `"${q.text}"`;
+      document.getElementById('quoteAuthor').textContent = `— ${q.author}`;
+    }
+    function nextQuote() {
+      quoteIdx = (quoteIdx + 1) % quotes.length;
+      renderQuote();
+    }
+
+    /* ───── THEME ───────────────────────────────────────── */
+    function toggleTheme() {
+      const html = document.documentElement;
+      const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('am_theme', next);
+    }
+
+    /* ───── ATTACK MODE ─────────────────────────────────── */
+    function toggleAttack() {
+      attackActive = !attackActive;
+      const btn     = document.getElementById('attackBtn');
+      const btnText = document.getElementById('attackBtnText');
+      const status  = document.getElementById('attackStatus');
+      const timer   = document.getElementById('attackTimer');
+      const overlay = document.getElementById('modeOverlay');
+
+      if (attackActive) {
+        attackStart = Date.now() - (parseInt(localStorage.getItem('am_elapsed') || 0));
+        btn.classList.add('active');
+        btnText.textContent = '🔴 DEACTIVATE ATTACK MODE';
+        status.textContent  = '● LOCKED IN — MAKE EVERY SECOND COUNT';
+        status.className    = 'attack-status on';
+        timer.className     = 'attack-timer on';
+        overlay.classList.add('show');
+        timerInterval = setInterval(tickTimer, 1000);
+
+        // increment sessions
+        const s = parseInt(localStorage.getItem('am_sessions') || 0) + 1;
+        localStorage.setItem('am_sessions', s);
+        // streak
+        updateStreak();
+      } else {
+        clearInterval(timerInterval);
+        const elapsed = Date.now() - attackStart;
+        localStorage.setItem('am_elapsed', elapsed);
+        btn.classList.remove('active');
+        btnText.textContent = '⚡ ACTIVATE ATTACK MODE';
+        status.textContent  = '● STANDBY — YOU\'RE WASTING TIME';
+        status.className    = 'attack-status';
+        timer.className     = 'attack-timer';
+        overlay.classList.remove('show');
+      }
+      renderStats();
+    }
+
+    function tickTimer() {
+      const elapsed = Math.floor((Date.now() - attackStart) / 1000);
+      const h = String(Math.floor(elapsed / 3600)).padStart(2,'0');
+      const m = String(Math.floor((elapsed % 3600) / 60)).padStart(2,'0');
+      const s = String(elapsed % 60).padStart(2,'0');
+      document.getElementById('attackTimer').textContent = `${h}:${m}:${s}`;
+    }
+
+    /* ───── STREAK ──────────────────────────────────────── */
+    function updateStreak() {
+      const today     = new Date().toDateString();
+      const lastDay   = localStorage.getItem('am_last_day');
+      let streak      = parseInt(localStorage.getItem('am_streak') || 0);
+      const yesterday = new Date(Date.now() - 86400000).toDateString();
+      if (lastDay === today) return;
+      if (lastDay === yesterday) streak++;
+      else streak = 1;
+      localStorage.setItem('am_streak', streak);
+      localStorage.setItem('am_last_day', today);
+    }
+
+    /* ───── SCROLL SHAME ────────────────────────────────── */
+    const shameMsgs = [
+      "bro... really? put the phone DOWN.",
+      "that's embarrassing. get back to work.",
+      "your future self is disappointed.",
+      "another one? stop it. seriously.",
+      "social media won. for now. fight back.",
+      "every scroll is a choice. make better ones.",
+      "this is not who you are. FOCUS.",
+      "you just chose distraction over your dreams.",
+    ];
+
+    function addShame() {
+      const today   = new Date().toDateString();
+      const stored  = JSON.parse(localStorage.getItem('am_shame') || '{}');
+      const week    = JSON.parse(localStorage.getItem('am_shame_week') || '[]');
+
+      // today count
+      if (!stored[today]) stored[today] = 0;
+      stored[today]++;
+      localStorage.setItem('am_shame', JSON.stringify(stored));
+
+      // week list
+      week.push(Date.now());
+      const weekAgo = Date.now() - 7*86400000;
+      const trimmed = week.filter(t => t > weekAgo);
+      localStorage.setItem('am_shame_week', JSON.stringify(trimmed));
+
+      // UI
+      const count   = stored[today];
+      const countEl = document.getElementById('shameTodayCount');
+      const msgEl   = document.getElementById('shameMsg');
+      countEl.textContent = count;
+      countEl.className   = count > 0 ? 'shame-count hot' : 'shame-count';
+      msgEl.textContent   = shameMsgs[Math.floor(Math.random() * shameMsgs.length)];
+      msgEl.className     = 'shame-msg show';
+      setTimeout(() => msgEl.className = 'shame-msg', 3500);
+
+      document.getElementById('shameWeekCount').textContent = trimmed.length;
+      document.getElementById('statShame').textContent      = trimmed.length;
+    }
+
+    function loadShame() {
+      const today   = new Date().toDateString();
+      const stored  = JSON.parse(localStorage.getItem('am_shame') || '{}');
+      const week    = JSON.parse(localStorage.getItem('am_shame_week') || '[]');
+      const weekAgo = Date.now() - 7*86400000;
+      const trimmed = week.filter(t => t > weekAgo);
+      const count   = stored[today] || 0;
+
+      document.getElementById('shameTodayCount').textContent = count;
+      if (count > 0) document.getElementById('shameTodayCount').classList.add('hot');
+      document.getElementById('shameWeekCount').textContent = trimmed.length;
+    }
+
+    /* ───── GOALS ───────────────────────────────────────── */
+    function addGoal() {
+      const input = document.getElementById('goalInput');
+      const text  = input.value.trim();
+      if (!text) return;
+      const goals = JSON.parse(localStorage.getItem('am_goals') || '[]');
+      goals.push({ id: Date.now(), text, done: false });
+      localStorage.setItem('am_goals', JSON.stringify(goals));
+      input.value = '';
+      renderGoals();
+    }
+
+    function toggleGoal(id) {
+      const goals = JSON.parse(localStorage.getItem('am_goals') || '[]');
+      const g     = goals.find(x => x.id === id);
+      if (g) g.done = !g.done;
+      localStorage.setItem('am_goals', JSON.stringify(goals));
+      renderGoals();
+    }
+
+    function deleteGoal(id) {
+      const goals = JSON.parse(localStorage.getItem('am_goals') || '[]').filter(x => x.id !== id);
+      localStorage.setItem('am_goals', JSON.stringify(goals));
+      renderGoals();
+    }
+
+    function renderGoals() {
+      const goals = JSON.parse(localStorage.getItem('am_goals') || '[]');
+      const list  = document.getElementById('goalsList');
+      const bar   = document.getElementById('goalsBar');
+      const pct   = document.getElementById('goalsPct');
+
+      if (!goals.length) {
+        list.innerHTML = '<div class="log-empty">NO TARGETS SET — ADD YOUR FIRST ONE ABOVE</div>';
+        bar.style.width = '0%';
+        pct.textContent = '0 / 0 COMPLETED';
+        return;
+      }
+      const done  = goals.filter(g => g.done).length;
+      const total = goals.length;
+      bar.style.width = `${Math.round((done/total)*100)}%`;
+      pct.textContent = `${done} / ${total} COMPLETED`;
+
+      list.innerHTML = goals.map(g => `
+        <div class="goal-item ${g.done ? 'done' : ''}" onclick="toggleGoal(${g.id})">
+          <div class="goal-check">${g.done ? '✓' : ''}</div>
+          <div class="goal-text">${escapeHtml(g.text)}</div>
+          <button class="goal-del" onclick="event.stopPropagation();deleteGoal(${g.id})">✕</button>
+        </div>
+      `).join('');
+    }
+
+    /* ───── LEARNING LOG ────────────────────────────────── */
+    function addLog() {
+      const title = document.getElementById('logTitle').value.trim();
+      const body  = document.getElementById('logBody').value.trim();
+      if (!title) return;
+      const entries = JSON.parse(localStorage.getItem('am_log') || '[]');
+      entries.unshift({
+        id:    Date.now(),
+        title,
+        body,
+        date:  new Date().toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' })
+      });
+      localStorage.setItem('am_log', JSON.stringify(entries));
+      document.getElementById('logTitle').value = '';
+      document.getElementById('logBody').value  = '';
+      renderLog();
+    }
+
+    function deleteLog(id) {
+      const entries = JSON.parse(localStorage.getItem('am_log') || '[]').filter(e => e.id !== id);
+      localStorage.setItem('am_log', JSON.stringify(entries));
+      renderLog();
+    }
+
+    function renderLog() {
+      const entries = JSON.parse(localStorage.getItem('am_log') || '[]');
+      const el      = document.getElementById('logEntries');
+      const tag     = document.getElementById('logCount');
+      tag.textContent = `${entries.length} ENTRIES`;
+
+      if (!entries.length) {
+        el.innerHTML = '<div class="log-empty">NO ENTRIES YET — LOG YOUR FIRST LEARNING TODAY</div>';
+        return;
+      }
+      el.innerHTML = entries.map(e => `
+        <div class="log-entry">
+          <div class="log-entry-title">${escapeHtml(e.title)}</div>
+          ${e.body ? `<div class="log-entry-body">${escapeHtml(e.body)}</div>` : ''}
+          <div class="log-entry-meta">
+            <span class="log-entry-date">${e.date}</span>
+            <button class="log-entry-delete" onclick="deleteLog(${e.id})" title="Delete">✕</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    /* ───── STATS ───────────────────────────────────────── */
+    function renderStats() {
+      document.getElementById('statStreak').textContent   = localStorage.getItem('am_streak')   || 0;
+      document.getElementById('statSessions').textContent = localStorage.getItem('am_sessions') || 0;
+      const week    = JSON.parse(localStorage.getItem('am_shame_week') || '[]');
+      const weekAgo = Date.now() - 7*86400000;
+      document.getElementById('statShame').textContent    = week.filter(t => t > weekAgo).length;
+    }
+
+    /* ───── RESET DAY ───────────────────────────────────── */
+    function resetDay() {
+      if (!confirm('Reset today\'s goals? (Log and stats are kept)')) return;
+      localStorage.removeItem('am_goals');
+      localStorage.removeItem('am_elapsed');
+      if (timerInterval) clearInterval(timerInterval);
+      if (attackActive) toggleAttack();
+      document.getElementById('attackTimer').textContent = '00:00:00';
+      renderGoals();
+    }
+
+    /* ───── UTILS ───────────────────────────────────────── */
+    function escapeHtml(s) {
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    /* ───── INIT ────────────────────────────────────────── */
+    (function init() {
+      // theme
+      const saved = localStorage.getItem('am_theme');
+      if (saved) document.documentElement.setAttribute('data-theme', saved);
+
+      // quote
+      quoteIdx = Math.floor(Math.random() * quotes.length);
+      renderQuote();
+
+      // cycle quote every 30s
+      setInterval(nextQuote, 30000);
+
+      // restore timer if session was open
+      const elapsed = parseInt(localStorage.getItem('am_elapsed') || 0);
+      if (elapsed > 0) {
+        const h = String(Math.floor(elapsed/1000/3600)).padStart(2,'0');
+        const m = String(Math.floor((elapsed/1000%3600)/60)).padStart(2,'0');
+        const s = String(Math.floor(elapsed/1000%60)).padStart(2,'0');
+        document.getElementById('attackTimer').textContent = `${h}:${m}:${s}`;
+      }
+
+      loadShame();
+      renderGoals();
+      renderLog();
+      renderStats();
+
+      // Enter key for log
+      document.getElementById('logTitle').addEventListener('keydown', e => {
+        if (e.key === 'Enter') addLog();
+      });
+    })();
+  </script>
+</body>
+</html>
