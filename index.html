@@ -3,1021 +3,1286 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ATTACK MODE — THORFINN</title>
+  <title>ATTACK MODE</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500;700&family=Barlow+Condensed:wght@400;600;700;900&display=swap" rel="stylesheet" />
-
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,700;1,400&family=Barlow+Condensed:wght@400;600;700;900&display=swap" rel="stylesheet" />
   <style>
-    /* ─── TOKENS ─────────────────────────────────────── */
+    /* ══ TOKENS ══════════════════════════════════════════ */
     :root {
-      --red:        #e3000f;
-      --red-dim:    #8b000a;
-      --red-glow:   rgba(227,0,15,0.35);
-      --white:      #f0ece3;
-      --off:        #a09a90;
-      --bg:         #0a0a09;
-      --bg2:        #111110;
-      --bg3:        #1a1a18;
-      --border:     #2a2a27;
-      --text:       #f0ece3;
-      --text-dim:   #6b6660;
-      --green:      #2dba4e;
-      --yellow:     #f5c842;
-      --font-display: 'Bebas Neue', sans-serif;
-      --font-ui:      'Barlow Condensed', sans-serif;
-      --font-mono:    'IBM Plex Mono', monospace;
+      --red:      #e3000f;
+      --red-dim:  #6b0007;
+      --red-glow: rgba(227,0,15,0.30);
+      --green:    #1db954;
+      --yellow:   #f5c518;
+      --blue:     #4a9eff;
+      --orange:   #ff6b2b;
+      --purple:   #a855f7;
+
+      --bg:       #080807;
+      --bg2:      #0f0f0e;
+      --bg3:      #181817;
+      --bg4:      #222220;
+      --border:   #272724;
+      --border2:  #333330;
+
+      --text:     #ede9df;
+      --text-dim: #5a5750;
+      --text-mid: #8a8680;
+
+      --font-d: 'Bebas Neue', sans-serif;
+      --font-u: 'Barlow Condensed', sans-serif;
+      --font-m: 'IBM Plex Mono', monospace;
+      --tr: 0.18s ease;
     }
     [data-theme="light"] {
-      --bg:        #f5f0e8;
-      --bg2:       #ede8df;
-      --bg3:       #e3ddd4;
-      --border:    #ccc8be;
-      --text:      #111110;
-      --text-dim:  #7a7570;
-      --off:       #5a5550;
-      --red-glow:  rgba(227,0,15,0.18);
+      --bg:       #f2ede4;
+      --bg2:      #e8e3da;
+      --bg3:      #ddd8ce;
+      --bg4:      #d2cdc3;
+      --border:   #c8c3b8;
+      --border2:  #b8b3a8;
+      --text:     #111110;
+      --text-dim: #8a8580;
+      --text-mid: #5a5550;
+      --red-glow: rgba(227,0,15,0.15);
     }
 
-    /* ─── RESET ──────────────────────────────────────── */
+    /* ══ RESET ═══════════════════════════════════════════ */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
     body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--font-mono);
-      font-size: 14px;
-      line-height: 1.6;
-      min-height: 100vh;
-      transition: background 0.3s, color 0.3s;
-      overflow-x: hidden;
+      background: var(--bg); color: var(--text);
+      font-family: var(--font-m); font-size: 13px; line-height: 1.6;
+      min-height: 100vh; overflow-x: hidden;
+      transition: background var(--tr), color var(--tr);
+    }
+    button { cursor: pointer; font-family: inherit; }
+    input, textarea, select { font-family: var(--font-m); }
+
+    /* scanline */
+    body::after {
+      content: ''; pointer-events: none; position: fixed; inset: 0;
+      background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.025) 3px, rgba(0,0,0,0.025) 4px);
+      z-index: 9000;
     }
 
-    /* ─── SCAN-LINE OVERLAY ───────────────────────────── */
-    body::before {
-      content: '';
-      pointer-events: none;
-      position: fixed;
-      inset: 0;
-      background: repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 2px,
-        rgba(0,0,0,0.04) 2px,
-        rgba(0,0,0,0.04) 4px
-      );
-      z-index: 9999;
-      opacity: 0.5;
+    /* ══ ACTIVE LINE ══════════════════════════════════════ */
+    #activeLine {
+      display: none; position: fixed; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, var(--red), #ff4444, var(--red));
+      background-size: 200%; animation: lineslide 1.5s linear infinite; z-index: 9999;
     }
+    #activeLine.show { display: block; }
+    @keyframes lineslide { to { background-position: -200% 0; } }
 
-    /* ─── LAYOUT ─────────────────────────────────────── */
-    .shell {
-      max-width: 860px;
-      margin: 0 auto;
-      padding: 24px 20px 80px;
-    }
+    /* ══ LAYOUT ══════════════════════════════════════════ */
+    .shell { max-width: 900px; margin: 0 auto; padding: 20px 18px 80px; }
 
-    /* ─── TOP BAR ────────────────────────────────────── */
+    /* ══ TOPBAR ══════════════════════════════════════════ */
     .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 14px;
-      margin-bottom: 40px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding-bottom: 14px; margin-bottom: 36px; border-bottom: 1px solid var(--border);
     }
-    .topbar-left {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: var(--text-dim);
-      letter-spacing: 0.1em;
+    .topbar-id { font-size: 10px; letter-spacing: 0.15em; color: var(--text-dim); text-transform: uppercase; }
+    .topbar-id b { color: var(--red); font-weight: 500; }
+    .topbar-right { display: flex; gap: 8px; }
+    .tb-btn {
+      background: var(--bg3); border: 1px solid var(--border);
+      color: var(--text-mid); font-size: 10px; letter-spacing: 0.1em;
+      padding: 5px 12px; text-transform: uppercase; transition: all var(--tr);
     }
-    .topbar-left span { color: var(--red); }
-    .topbar-right { display: flex; gap: 10px; align-items: center; }
-    .theme-btn {
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      color: var(--text);
-      cursor: pointer;
-      padding: 6px 12px;
-      font-family: var(--font-mono);
-      font-size: 11px;
-      letter-spacing: 0.08em;
-      transition: all 0.15s;
-    }
-    .theme-btn:hover { border-color: var(--red); color: var(--red); }
+    .tb-btn:hover { border-color: var(--red); color: var(--red); }
 
-    /* ─── HERO HEADER ────────────────────────────────── */
-    .hero {
-      text-align: center;
-      margin-bottom: 44px;
-    }
-    .hero-label {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      letter-spacing: 0.25em;
-      color: var(--red);
-      margin-bottom: 8px;
-      text-transform: uppercase;
-    }
+    /* ══ HERO ════════════════════════════════════════════ */
+    .hero { text-align: center; margin-bottom: 40px; }
+    .hero-eyebrow { font-size: 10px; letter-spacing: 0.3em; color: var(--red); text-transform: uppercase; margin-bottom: 6px; }
     .hero-name {
-      font-family: var(--font-display);
-      font-size: clamp(52px, 12vw, 110px);
-      line-height: 0.92;
-      letter-spacing: 0.02em;
-      color: var(--text);
-      text-transform: uppercase;
+      font-family: var(--font-d); font-size: clamp(56px, 13vw, 116px);
+      line-height: 0.9; letter-spacing: 0.03em; color: var(--text);
     }
-    .hero-name em {
-      color: var(--red);
-      font-style: normal;
-      text-shadow: 0 0 40px var(--red-glow);
+    .hero-name em { color: var(--red); font-style: normal; text-shadow: 0 0 50px var(--red-glow); }
+    .hero-sub { font-family: var(--font-u); font-size: 13px; letter-spacing: 0.25em; color: var(--text-dim); margin-top: 10px; text-transform: uppercase; }
+    .hero-mission {
+      margin-top: 16px; padding: 14px 20px;
+      border: 1px solid var(--border); border-left: 3px solid var(--red);
+      background: var(--bg2); display: inline-block; max-width: 600px;
+      font-family: var(--font-u); font-size: 16px; font-weight: 600;
+      letter-spacing: 0.04em; color: var(--text); line-height: 1.5;
     }
-    .hero-sub {
-      font-family: var(--font-ui);
-      font-size: 15px;
-      letter-spacing: 0.2em;
-      color: var(--text-dim);
-      margin-top: 10px;
-      text-transform: uppercase;
-    }
+    .hero-mission.hidden { display: none; }
 
-    /* ─── ATTACK TOGGLE ──────────────────────────────── */
-    .attack-zone {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin-bottom: 50px;
+    /* ══ ATTACK BTN ══════════════════════════════════════ */
+    .attack-wrap { display: flex; flex-direction: column; align-items: center; margin-bottom: 44px; }
+    #attackBtn {
+      position: relative; overflow: hidden; border: 2px solid var(--red);
+      background: transparent; color: var(--red);
+      font-family: var(--font-d); font-size: clamp(28px, 6vw, 50px);
+      letter-spacing: 0.08em; padding: 18px 56px; text-transform: uppercase;
+      transition: all 0.2s; outline: none;
     }
-    .attack-btn {
-      position: relative;
-      cursor: pointer;
-      border: 2px solid var(--red);
-      background: transparent;
-      color: var(--red);
-      font-family: var(--font-display);
-      font-size: clamp(28px, 6vw, 52px);
-      letter-spacing: 0.08em;
-      padding: 20px 52px;
-      text-transform: uppercase;
-      transition: all 0.2s;
-      outline: none;
-      overflow: hidden;
+    #attackBtn .fill { position: absolute; inset: 0; background: var(--red); transform: translateX(-100%); transition: transform 0.2s ease; z-index: 0; }
+    #attackBtn:hover .fill { transform: translateX(0); }
+    #attackBtn:hover { color: #fff; box-shadow: 0 0 40px var(--red-glow); }
+    #attackBtn.active { background: var(--red); color: #fff; animation: pulsebtn 2s infinite; }
+    #attackBtn.active .fill { transform: translateX(0); }
+    @keyframes pulsebtn {
+      0%,100% { box-shadow: 0 0 30px var(--red-glow); }
+      50%      { box-shadow: 0 0 80px var(--red-glow), 0 0 140px rgba(227,0,15,0.12); }
     }
-    .attack-btn::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: var(--red);
-      transform: translateX(-100%);
-      transition: transform 0.2s ease;
-      z-index: 0;
-    }
-    .attack-btn:hover::before { transform: translateX(0); }
-    .attack-btn:hover { color: #fff; box-shadow: 0 0 30px var(--red-glow); }
-    .attack-btn span { position: relative; z-index: 1; }
+    #attackBtn span { position: relative; z-index: 1; }
+    .attack-meta { margin-top: 14px; text-align: center; }
+    #attackStatus { font-size: 10px; letter-spacing: 0.18em; color: var(--text-dim); text-transform: uppercase; margin-bottom: 4px; }
+    #attackStatus.on { color: var(--red); }
+    #timerDisplay { font-family: var(--font-d); font-size: 50px; letter-spacing: 0.04em; color: var(--text); line-height: 1; }
+    #timerDisplay.on { color: var(--red); text-shadow: 0 0 24px var(--red-glow); }
+    #aib { display: none; margin-top: 10px; align-items: center; gap: 8px; font-size: 11px; letter-spacing: 0.08em; color: var(--text-mid); }
+    #aib.show { display: flex; justify-content: center; }
 
-    .attack-btn.active {
-      background: var(--red);
-      color: #fff;
-      box-shadow: 0 0 50px var(--red-glow), 0 0 100px rgba(227,0,15,0.15);
-      animation: pulse-red 2s infinite;
-    }
-    .attack-btn.active::before { transform: translateX(0); }
-    @keyframes pulse-red {
-      0%, 100% { box-shadow: 0 0 30px var(--red-glow); }
-      50%       { box-shadow: 0 0 70px var(--red-glow), 0 0 120px rgba(227,0,15,0.2); }
-    }
-
-    .attack-status {
-      margin-top: 14px;
-      font-family: var(--font-mono);
-      font-size: 11px;
-      letter-spacing: 0.15em;
-      color: var(--text-dim);
-      text-transform: uppercase;
-    }
-    .attack-status.on { color: var(--red); }
-    .attack-timer {
-      font-family: var(--font-display);
-      font-size: 42px;
-      letter-spacing: 0.05em;
-      color: var(--text);
-      margin-top: 6px;
-    }
-    .attack-timer.on { color: var(--red); text-shadow: 0 0 20px var(--red-glow); }
-
-    /* ─── QUOTE TICKER ───────────────────────────────── */
+    /* ══ QUOTE ═══════════════════════════════════════════ */
     .quote-bar {
-      border: 1px solid var(--border);
-      border-left: 3px solid var(--red);
-      padding: 14px 18px;
-      margin-bottom: 40px;
-      background: var(--bg2);
-      position: relative;
+      border: 1px solid var(--border); border-left: 3px solid var(--red);
+      padding: 14px 44px 14px 18px; margin-bottom: 36px;
+      background: var(--bg2); position: relative;
     }
-    .quote-bar p {
-      font-family: var(--font-ui);
-      font-size: 16px;
-      font-weight: 600;
-      letter-spacing: 0.04em;
-      color: var(--text);
-      line-height: 1.4;
-    }
-    .quote-bar cite {
-      display: block;
-      margin-top: 6px;
-      font-size: 11px;
-      font-style: normal;
-      color: var(--red);
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      font-family: var(--font-mono);
-    }
-    .quote-next {
-      position: absolute;
-      right: 14px;
-      top: 50%;
-      transform: translateY(-50%);
-      background: none;
-      border: none;
-      color: var(--text-dim);
-      cursor: pointer;
-      font-size: 20px;
-      line-height: 1;
-      transition: color 0.15s;
-    }
-    .quote-next:hover { color: var(--red); }
+    .quote-bar p { font-family: var(--font-u); font-size: 15px; font-weight: 600; letter-spacing: 0.03em; line-height: 1.5; }
+    .quote-bar cite { display: block; margin-top: 5px; font-style: normal; font-size: 10px; color: var(--red); letter-spacing: 0.12em; text-transform: uppercase; }
+    .qnext { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-dim); font-size: 18px; transition: color var(--tr); }
+    .qnext:hover { color: var(--red); }
 
-    /* ─── STATS ROW ──────────────────────────────────── */
-    .stats-row {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      margin-bottom: 40px;
-    }
-    .stat-card {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      padding: 18px 16px;
-      text-align: center;
-    }
-    .stat-num {
-      font-family: var(--font-display);
-      font-size: 48px;
-      line-height: 1;
-      color: var(--red);
-    }
-    .stat-label {
-      font-family: var(--font-mono);
-      font-size: 10px;
-      letter-spacing: 0.12em;
-      color: var(--text-dim);
-      text-transform: uppercase;
-      margin-top: 4px;
-    }
+    /* ══ STATS ═══════════════════════════════════════════ */
+    .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 36px; }
+    .stat-card { background: var(--bg2); border: 1px solid var(--border); padding: 16px 12px; text-align: center; }
+    .stat-num { font-family: var(--font-d); font-size: 42px; line-height: 1; color: var(--red); }
+    .stat-label { font-size: 9px; letter-spacing: 0.12em; color: var(--text-dim); text-transform: uppercase; margin-top: 4px; }
 
-    /* ─── SECTION HEADER ─────────────────────────────── */
-    .section {
-      margin-bottom: 40px;
+    /* ══ TABS ════════════════════════════════════════════ */
+    .tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 32px; overflow-x: auto; }
+    .tab-btn {
+      background: none; border: none; border-bottom: 2px solid transparent;
+      color: var(--text-dim); font-family: var(--font-u); font-size: 14px;
+      font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+      padding: 10px 20px; transition: all var(--tr); white-space: nowrap; margin-bottom: -1px;
     }
-    .section-head {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 18px;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 10px;
-    }
-    .section-head h2 {
-      font-family: var(--font-display);
-      font-size: 26px;
-      letter-spacing: 0.06em;
-      color: var(--text);
-      text-transform: uppercase;
-    }
-    .section-head .tag {
-      font-family: var(--font-mono);
-      font-size: 10px;
-      letter-spacing: 0.1em;
-      color: var(--red);
-      border: 1px solid var(--red);
-      padding: 2px 7px;
-      text-transform: uppercase;
-    }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--red); border-bottom-color: var(--red); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; animation: fadeUp 0.2s ease; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* ─── SCROLL SHAME ───────────────────────────────── */
-    .shame-zone { text-align: center; }
-    .shame-btn {
-      cursor: pointer;
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      color: var(--text-dim);
-      font-family: var(--font-ui);
-      font-size: 14px;
-      font-weight: 600;
-      letter-spacing: 0.1em;
-      padding: 14px 32px;
-      text-transform: uppercase;
-      transition: all 0.15s;
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .shame-btn:hover {
-      background: #1a0002;
-      border-color: var(--red);
-      color: var(--red);
-    }
-    .shame-count {
-      font-family: var(--font-display);
-      font-size: 80px;
-      line-height: 1;
-      color: var(--border);
-      margin: 10px 0 4px;
-      transition: color 0.3s;
-    }
-    .shame-count.hot { color: var(--red); }
-    .shame-msg {
-      font-family: var(--font-mono);
-      font-size: 12px;
-      color: var(--text-dim);
-      min-height: 20px;
-      transition: all 0.2s;
-      letter-spacing: 0.05em;
-    }
-    .shame-msg.show { color: var(--red); }
-    .shame-week {
-      margin-top: 8px;
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: var(--text-dim);
-      letter-spacing: 0.08em;
-    }
-    .shame-week span { color: var(--yellow); }
+    /* ══ SECTION HEADERS ═════════════════════════════════ */
+    .sec-head { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+    .sec-head h2 { font-family: var(--font-d); font-size: 24px; letter-spacing: 0.06em; text-transform: uppercase; }
+    .sec-tag { font-size: 9px; letter-spacing: 0.12em; color: var(--red); border: 1px solid var(--red-dim); padding: 2px 7px; text-transform: uppercase; }
+    .sec-tag.green { color: var(--green); border-color: rgba(29,185,84,0.35); }
+    .sec-tag.yellow { color: var(--yellow); border-color: rgba(245,197,24,0.35); }
 
-    /* ─── LEARNING LOG ───────────────────────────────── */
-    .log-form { display: flex; flex-direction: column; gap: 10px; }
-    .log-form input,
-    .log-form textarea {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      color: var(--text);
-      font-family: var(--font-mono);
-      font-size: 13px;
-      padding: 12px 14px;
-      outline: none;
-      transition: border-color 0.15s;
-      resize: vertical;
+    /* ══ FORMS ═══════════════════════════════════════════ */
+    input[type="text"], textarea, select {
+      background: var(--bg2); border: 1px solid var(--border);
+      color: var(--text); font-family: var(--font-m); font-size: 13px;
+      padding: 10px 13px; outline: none; transition: border-color var(--tr); width: 100%;
     }
-    .log-form input::placeholder,
-    .log-form textarea::placeholder { color: var(--text-dim); }
-    .log-form input:focus,
-    .log-form textarea:focus { border-color: var(--red); }
-    .log-form textarea { min-height: 90px; }
-    .log-row { display: flex; gap: 10px; }
-    .log-row input { flex: 1; }
-    .btn-primary {
-      cursor: pointer;
-      background: var(--red);
-      border: 2px solid var(--red);
-      color: #fff;
-      font-family: var(--font-ui);
-      font-size: 14px;
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      padding: 12px 24px;
-      text-transform: uppercase;
-      transition: all 0.15s;
+    input[type="text"]::placeholder, textarea::placeholder { color: var(--text-dim); }
+    input[type="text"]:focus, textarea:focus, select:focus { border-color: var(--red); }
+    select { appearance: none; cursor: pointer; }
+    textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
+    .btn-red {
+      background: var(--red); border: 2px solid var(--red); color: #fff;
+      font-family: var(--font-u); font-size: 13px; font-weight: 700;
+      letter-spacing: 0.12em; padding: 10px 22px; text-transform: uppercase;
+      transition: all var(--tr); white-space: nowrap;
     }
-    .btn-primary:hover {
-      background: transparent;
-      color: var(--red);
-    }
+    .btn-red:hover { background: transparent; color: var(--red); }
     .btn-ghost {
-      cursor: pointer;
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--text-dim);
-      font-family: var(--font-mono);
-      font-size: 11px;
-      letter-spacing: 0.08em;
-      padding: 8px 16px;
-      text-transform: uppercase;
-      transition: all 0.15s;
+      background: transparent; border: 1px solid var(--border); color: var(--text-dim);
+      font-size: 10px; letter-spacing: 0.1em; padding: 8px 14px;
+      text-transform: uppercase; transition: all var(--tr);
     }
     .btn-ghost:hover { border-color: var(--red); color: var(--red); }
+    .row { display: flex; gap: 10px; align-items: flex-start; }
+    .row.mid { align-items: center; }
 
-    /* ─── LOG ENTRIES ────────────────────────────────── */
-    .log-entries { margin-top: 20px; display: flex; flex-direction: column; gap: 10px; }
-    .log-entry {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-left: 3px solid var(--border);
-      padding: 14px 16px;
-      position: relative;
-      transition: border-color 0.15s;
-      animation: slideIn 0.2s ease;
+    /* ══ TAG PILLS ═══════════════════════════════════════ */
+    .tag-pills { display: flex; flex-wrap: wrap; gap: 7px; }
+    .tag-pill {
+      background: var(--bg3); border: 1px solid var(--border);
+      color: var(--text-dim); font-size: 10px; letter-spacing: 0.1em;
+      padding: 4px 10px; text-transform: uppercase; transition: all var(--tr);
+      font-family: var(--font-u); font-weight: 700;
     }
-    @keyframes slideIn {
-      from { opacity: 0; transform: translateY(-6px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    .log-entry:hover { border-left-color: var(--red); }
-    .log-entry-title {
-      font-family: var(--font-ui);
-      font-size: 16px;
-      font-weight: 700;
-      letter-spacing: 0.04em;
-      color: var(--text);
-      margin-bottom: 4px;
-    }
-    .log-entry-body {
-      font-family: var(--font-mono);
-      font-size: 12px;
-      color: var(--text-dim);
-      line-height: 1.55;
-    }
-    .log-entry-meta {
-      margin-top: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .log-entry-date {
-      font-family: var(--font-mono);
-      font-size: 10px;
-      color: var(--text-dim);
-      letter-spacing: 0.08em;
-    }
-    .log-entry-delete {
-      background: none;
-      border: none;
-      cursor: pointer;
-      color: var(--text-dim);
-      font-size: 14px;
-      line-height: 1;
-      transition: color 0.15s;
-      padding: 0 4px;
-    }
-    .log-entry-delete:hover { color: var(--red); }
-    .log-empty {
-      font-family: var(--font-mono);
-      font-size: 12px;
-      color: var(--text-dim);
-      letter-spacing: 0.06em;
-      padding: 24px 0;
-      text-align: center;
-      border: 1px dashed var(--border);
-    }
+    .tag-pill.sel-DSA      { background: rgba(74,158,255,0.15); border-color: var(--blue);   color: var(--blue);   }
+    .tag-pill.sel-Reading  { background: rgba(29,185,84,0.12);  border-color: var(--green);  color: var(--green);  }
+    .tag-pill.sel-Project  { background: rgba(245,197,24,0.12); border-color: var(--yellow); color: var(--yellow); }
+    .tag-pill.sel-Revision { background: rgba(255,107,43,0.12); border-color: var(--orange); color: var(--orange); }
+    .tag-pill.sel-Other    { background: rgba(168,85,247,0.12); border-color: var(--purple); color: var(--purple); }
+    .tag-pill:hover { border-color: var(--red); color: var(--red); }
+    .tc-DSA      { background: rgba(74,158,255,0.15);  color: var(--blue);   border: 1px solid rgba(74,158,255,0.3);  }
+    .tc-Reading  { background: rgba(29,185,84,0.12);   color: var(--green);  border: 1px solid rgba(29,185,84,0.3);   }
+    .tc-Project  { background: rgba(245,197,24,0.12);  color: var(--yellow); border: 1px solid rgba(245,197,24,0.3);  }
+    .tc-Revision { background: rgba(255,107,43,0.12);  color: var(--orange); border: 1px solid rgba(255,107,43,0.3);  }
+    .tc-Other    { background: rgba(168,85,247,0.12);  color: var(--purple); border: 1px solid rgba(168,85,247,0.3);  }
 
-    /* ─── DAILY GOALS ────────────────────────────────── */
-    .goals-add { display: flex; gap: 10px; }
+    /* ══ TODAY TAB ═══════════════════════════════════════ */
+    .goals-add { display: flex; gap: 8px; margin-bottom: 12px; }
     .goals-add input { flex: 1; }
-    .goals-list { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+    .goals-list { display: flex; flex-direction: column; gap: 7px; }
     .goal-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      padding: 12px 14px;
-      cursor: pointer;
-      transition: border-color 0.15s;
+      display: flex; align-items: center; gap: 10px;
+      background: var(--bg2); border: 1px solid var(--border);
+      padding: 11px 13px; transition: border-color var(--tr); cursor: pointer;
     }
-    .goal-item:hover { border-color: var(--red); }
-    .goal-item.done { opacity: 0.45; }
-    .goal-check {
-      width: 18px;
-      height: 18px;
-      border: 2px solid var(--border);
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      color: var(--green);
-      transition: border-color 0.15s, background 0.15s;
-    }
-    .goal-item.done .goal-check {
-      border-color: var(--green);
-      background: rgba(45,186,78,0.12);
-    }
-    .goal-text {
-      font-family: var(--font-ui);
-      font-size: 15px;
-      font-weight: 600;
-      letter-spacing: 0.03em;
-      flex: 1;
-    }
-    .goal-item.done .goal-text {
-      text-decoration: line-through;
-      color: var(--text-dim);
-    }
-    .goal-del {
-      background: none;
-      border: none;
-      cursor: pointer;
-      color: var(--text-dim);
-      font-size: 14px;
-      transition: color 0.15s;
-      padding: 0 4px;
-    }
-    .goal-del:hover { color: var(--red); }
-    .goals-progress {
-      margin-top: 12px;
-      height: 4px;
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      overflow: hidden;
-    }
-    .goals-bar {
-      height: 100%;
-      background: var(--green);
-      transition: width 0.4s ease;
-    }
-    .goals-pct {
-      margin-top: 6px;
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: var(--text-dim);
-      letter-spacing: 0.08em;
-    }
+    .goal-item:hover { border-color: var(--border2); }
+    .goal-item.done { opacity: 0.4; }
+    .g-check { width: 16px; height: 16px; border: 2px solid var(--border2); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--green); }
+    .goal-item.done .g-check { border-color: var(--green); background: rgba(29,185,84,0.12); }
+    .g-text { font-family: var(--font-u); font-size: 15px; font-weight: 600; flex: 1; letter-spacing: 0.02em; }
+    .goal-item.done .g-text { text-decoration: line-through; color: var(--text-dim); }
+    .g-del { background: none; border: none; color: var(--text-dim); font-size: 12px; padding: 0 4px; transition: color var(--tr); }
+    .g-del:hover { color: var(--red); }
+    .prog-wrap { margin-top: 10px; }
+    .prog-bar { height: 3px; background: var(--bg3); }
+    .prog-fill { height: 100%; background: var(--green); transition: width 0.4s ease; }
+    .prog-label { font-size: 10px; color: var(--text-dim); letter-spacing: 0.1em; margin-top: 5px; }
 
-    /* ─── FOOTER ─────────────────────────────────────── */
-    .footer {
-      margin-top: 60px;
-      border-top: 1px solid var(--border);
-      padding-top: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 10px;
+    /* Shame */
+    .shame-center { text-align: center; padding: 10px 0; }
+    .shame-big { font-family: var(--font-d); font-size: 90px; line-height: 1; color: var(--border2); transition: color 0.25s; }
+    .shame-big.hot { color: var(--red); text-shadow: 0 0 30px var(--red-glow); }
+    .shame-roast { font-size: 11px; color: var(--text-dim); letter-spacing: 0.06em; min-height: 18px; margin: 8px 0 14px; transition: color 0.2s; }
+    .shame-roast.fire { color: var(--red); }
+    .shame-trigger {
+      background: var(--bg3); border: 1px solid var(--border); color: var(--text-dim);
+      font-family: var(--font-u); font-size: 13px; font-weight: 700;
+      letter-spacing: 0.1em; padding: 12px 28px; text-transform: uppercase;
+      transition: all var(--tr); display: inline-flex; align-items: center; gap: 8px;
     }
-    .footer-left {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: var(--text-dim);
-      letter-spacing: 0.06em;
-    }
-    .footer-left span { color: var(--red); }
-    .reset-btn {
-      cursor: pointer;
-      background: none;
-      border: 1px solid var(--border);
-      color: var(--text-dim);
-      font-family: var(--font-mono);
-      font-size: 10px;
-      letter-spacing: 0.08em;
-      padding: 6px 12px;
-      text-transform: uppercase;
-      transition: all 0.15s;
-    }
-    .reset-btn:hover { border-color: var(--red); color: var(--red); }
+    .shame-trigger:hover { background: rgba(227,0,15,0.08); border-color: var(--red); color: var(--red); }
+    .shame-week { font-size: 10px; color: var(--text-dim); letter-spacing: 0.1em; margin-top: 10px; }
+    .shame-week b { color: var(--yellow); }
 
-    /* ─── ATTACK MODE ACTIVE OVERLAY ─────────────────── */
-    .mode-overlay {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, var(--red), #ff4444, var(--red));
-      background-size: 200% 100%;
-      animation: slide-grad 2s linear infinite;
-      z-index: 10000;
-    }
-    .mode-overlay.show { display: block; }
-    @keyframes slide-grad {
-      0%   { background-position: 0% 0%; }
-      100% { background-position: -200% 0%; }
-    }
+    /* ══ SESSIONS TAB ════════════════════════════════════ */
+    .chart-wrap { background: var(--bg2); border: 1px solid var(--border); padding: 20px 20px 14px; margin-bottom: 28px; }
+    .chart-inner { display: flex; align-items: flex-end; gap: 10px; height: 100px; }
+    .chart-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .chart-bar-wrap { width: 100%; flex: 1; display: flex; align-items: flex-end; }
+    .chart-bar { width: 100%; background: var(--bg4); border-top: 2px solid var(--border2); transition: height 0.5s ease; min-height: 4px; }
+    .chart-bar.today { background: var(--red); border-top-color: var(--red); }
+    .chart-bar.has-data { border-top-color: var(--red-dim); }
+    .chart-day { font-size: 9px; letter-spacing: 0.08em; color: var(--text-dim); text-transform: uppercase; }
+    .chart-day.today { color: var(--red); }
+    .chart-hrs { font-size: 9px; color: var(--text-mid); }
+    .chart-legend { display: flex; align-items: center; gap: 16px; margin-top: 12px; border-top: 1px solid var(--border); padding-top: 10px; flex-wrap: wrap; }
+    .chart-total { font-family: var(--font-d); font-size: 28px; color: var(--red); }
+    .chart-total-label { font-size: 10px; color: var(--text-dim); letter-spacing: 0.08em; text-transform: uppercase; }
+    .sess-list { display: flex; flex-direction: column; gap: 8px; }
+    .sess-item { background: var(--bg2); border: 1px solid var(--border); padding: 13px 15px; display: flex; align-items: center; gap: 14px; animation: slideIn 0.2s ease; }
+    .sess-dur { font-family: var(--font-d); font-size: 28px; color: var(--text); min-width: 80px; line-height: 1; }
+    .sess-body { flex: 1; min-width: 0; }
+    .sess-intention { font-family: var(--font-u); font-size: 15px; font-weight: 700; letter-spacing: 0.03em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sess-date { font-size: 10px; color: var(--text-dim); letter-spacing: 0.08em; margin-top: 2px; }
+    .sess-del { background: none; border: none; color: var(--text-dim); font-size: 12px; transition: color var(--tr); padding: 0 4px; }
+    .sess-del:hover { color: var(--red); }
 
-    /* ─── RESPONSIVE ─────────────────────────────────── */
-    @media (max-width: 520px) {
-      .stats-row { grid-template-columns: repeat(3, 1fr); }
-      .stat-num  { font-size: 36px; }
-      .log-row   { flex-direction: column; }
-      .goals-add { flex-direction: column; }
+    /* ══ REPORT TAB ══════════════════════════════════════ */
+    .report-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+    .report-card { background: var(--bg2); border: 1px solid var(--border); padding: 18px 16px; }
+    .report-card-head { font-size: 10px; letter-spacing: 0.15em; color: var(--text-dim); text-transform: uppercase; margin-bottom: 12px; }
+    .report-metric { display: flex; align-items: flex-end; gap: 8px; margin-bottom: 10px; }
+    .report-metric-big { font-family: var(--font-d); font-size: 38px; line-height: 1; }
+    .report-metric-sub { font-size: 10px; color: var(--text-dim); letter-spacing: 0.08em; padding-bottom: 4px; }
+    .report-vs { font-size: 10px; letter-spacing: 0.06em; margin-top: 4px; }
+    .up { color: var(--green); } .down { color: var(--red); } .same { color: var(--text-dim); }
+    .tag-breakdown { display: flex; flex-direction: column; gap: 7px; }
+    .tag-row { display: flex; align-items: center; gap: 10px; }
+    .tag-row-label { font-family: var(--font-u); font-size: 12px; font-weight: 700; letter-spacing: 0.05em; width: 70px; text-transform: uppercase; }
+    .tag-row-bar { flex: 1; height: 6px; background: var(--bg4); }
+    .tag-row-fill { height: 100%; transition: width 0.5s ease; }
+    .tag-row-val { font-size: 10px; color: var(--text-dim); width: 30px; text-align: right; }
+    .fill-DSA     { background: var(--blue);   }
+    .fill-Reading { background: var(--green);  }
+    .fill-Project { background: var(--yellow); }
+    .fill-Revision{ background: var(--orange); }
+    .fill-Other   { background: var(--purple); }
+
+    /* ══ BADGES TAB ══════════════════════════════════════ */
+    .badges-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: 10px; }
+    .badge { background: var(--bg2); border: 1px solid var(--border); padding: 18px 14px; text-align: center; position: relative; transition: border-color var(--tr); }
+    .badge.unlocked:hover { border-color: var(--red); }
+    .badge-icon { font-size: 32px; margin-bottom: 10px; filter: grayscale(1); opacity: 0.3; }
+    .badge.unlocked .badge-icon { filter: none; opacity: 1; }
+    .badge-name { font-family: var(--font-u); font-size: 13px; font-weight: 700; letter-spacing: 0.06em; color: var(--text-dim); text-transform: uppercase; }
+    .badge.unlocked .badge-name { color: var(--text); }
+    .badge-desc { font-size: 10px; color: var(--text-dim); margin-top: 4px; letter-spacing: 0.04em; }
+    .badge-status { font-size: 9px; color: var(--text-dim); letter-spacing: 0.1em; margin-top: 6px; text-transform: uppercase; }
+    .badge.unlocked .badge-status { color: var(--green); }
+    .badge-new { position: absolute; top: 8px; right: 8px; background: var(--red); color: #fff; font-size: 8px; letter-spacing: 0.1em; padding: 2px 5px; text-transform: uppercase; }
+
+    /* ══ LOG TAB ═════════════════════════════════════════ */
+    .log-add { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+    .log-list { display: flex; flex-direction: column; gap: 8px; }
+    .log-entry { background: var(--bg2); border: 1px solid var(--border); border-left: 3px solid var(--border); padding: 14px 15px; transition: border-left-color var(--tr); animation: slideIn 0.2s ease; }
+    .log-entry:hover { border-left-color: var(--red); }
+    .log-entry-title { font-family: var(--font-u); font-size: 16px; font-weight: 700; letter-spacing: 0.03em; }
+    .log-entry-body { font-size: 12px; color: var(--text-dim); margin-top: 5px; line-height: 1.6; }
+    .log-entry-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
+    .log-entry-date { font-size: 10px; color: var(--text-dim); letter-spacing: 0.06em; }
+    .log-entry-del { background: none; border: none; color: var(--text-dim); font-size: 12px; transition: color var(--tr); }
+    .log-entry-del:hover { color: var(--red); }
+
+    .empty { text-align: center; padding: 32px 20px; border: 1px dashed var(--border); color: var(--text-dim); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ══ MODALS (shared) ═════════════════════════════════ */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.85); backdrop-filter: blur(6px);
+      z-index: 8000; align-items: center; justify-content: center; padding: 20px;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-top: 3px solid var(--red); max-width: 460px; width: 100%;
+      padding: 28px 24px; animation: modalIn 0.25s ease;
+    }
+    @keyframes modalIn { from { opacity: 0; transform: scale(0.96) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+    .modal-eyebrow { font-size: 9px; letter-spacing: 0.2em; color: var(--red); text-transform: uppercase; margin-bottom: 6px; }
+    .modal h3 { font-family: var(--font-d); font-size: 30px; letter-spacing: 0.06em; margin-bottom: 6px; text-transform: uppercase; }
+    .modal .sub { font-size: 11px; color: var(--text-dim); letter-spacing: 0.06em; margin-bottom: 22px; line-height: 1.6; }
+    .modal-field { margin-bottom: 14px; }
+    .modal-label { font-size: 10px; letter-spacing: 0.15em; color: var(--text-dim); text-transform: uppercase; margin-bottom: 6px; display: block; }
+    .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+
+    /* ══ ONBOARDING MODAL ════════════════════════════════ */
+    #onboardModal .modal { max-width: 500px; border-top-color: var(--red); }
+    .ob-step { display: none; }
+    .ob-step.active { display: block; animation: fadeUp 0.2s ease; }
+    .ob-progress { display: flex; gap: 6px; margin-bottom: 24px; }
+    .ob-dot { width: 24px; height: 3px; background: var(--border2); transition: background 0.3s; }
+    .ob-dot.active { background: var(--red); }
+    .ob-dot.done { background: var(--green); }
+    .jarvis-intro {
+      background: var(--bg3); border: 1px solid var(--border); border-left: 3px solid var(--red);
+      padding: 14px 16px; margin-bottom: 20px; font-family: var(--font-m); font-size: 12px;
+      color: var(--text-dim); line-height: 1.7; letter-spacing: 0.03em;
+    }
+    .jarvis-intro b { color: var(--red); font-weight: 500; }
+
+    /* ══ INTENTION MODAL ═════════════════════════════════ */
+    .summary-big { font-family: var(--font-d); font-size: 72px; color: var(--red); line-height: 1; text-align: center; text-shadow: 0 0 40px var(--red-glow); margin: 10px 0; }
+    .summary-row { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--border); }
+    .summary-row:last-child { border-bottom: none; }
+    .summary-row .lbl { color: var(--text-dim); letter-spacing: 0.08em; text-transform: uppercase; font-size: 10px; }
+    .summary-row .val { font-family: var(--font-u); font-weight: 700; font-size: 14px; letter-spacing: 0.04em; }
+
+    /* ══ FOOTER ══════════════════════════════════════════ */
+    .footer { margin-top: 50px; border-top: 1px solid var(--border); padding-top: 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+    .footer-id { font-size: 10px; letter-spacing: 0.1em; color: var(--text-dim); }
+    .footer-id b { color: var(--red); }
+    .footer-actions { display: flex; gap: 8px; }
+
+    /* ══ RESPONSIVE ══════════════════════════════════════ */
+    @media (max-width: 600px) {
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+      .report-grid { grid-template-columns: 1fr; }
+      .tab-btn { padding: 10px 14px; font-size: 12px; }
     }
   </style>
 </head>
 <body>
-  <div class="mode-overlay" id="modeOverlay"></div>
+  <div id="activeLine"></div>
 
+  <!-- ══════════════════════════════════════════
+       ONBOARDING MODAL
+  ══════════════════════════════════════════ -->
+  <div class="modal-overlay" id="onboardModal">
+    <div class="modal">
+      <div class="ob-progress">
+        <div class="ob-dot active" id="od1"></div>
+        <div class="ob-dot" id="od2"></div>
+        <div class="ob-dot" id="od3"></div>
+      </div>
+
+      <!-- STEP 1: Intro + Name -->
+      <div class="ob-step active" id="ob-step-1">
+        <div class="modal-eyebrow">// system initialising //</div>
+        <h3>Hello, Operator.</h3>
+        <div class="jarvis-intro">
+          <b>JARVIS ONLINE.</b><br>
+          I am your personal attack system. I track your focus sessions, log your learning, hold you accountable and make sure you don't waste the limited time you have.<br><br>
+          You chose this. Now let's set up your war room.
+        </div>
+        <div class="modal-field">
+          <label class="modal-label">What's your name / callsign?</label>
+          <input type="text" id="ob-name" placeholder="e.g. YASH BOSS" maxlength="30" />
+        </div>
+        <div class="modal-actions">
+          <button class="btn-red" onclick="obNext(1)" style="width:100%">CONTINUE →</button>
+        </div>
+      </div>
+
+      <!-- STEP 2: Mission Statement -->
+      <div class="ob-step" id="ob-step-2">
+        <div class="modal-eyebrow">// define your mission //</div>
+        <h3>Why Are You Here?</h3>
+        <p class="sub">This will be shown on your dashboard every day. Make it something that hits you in the gut when you're about to scroll.</p>
+        <div class="modal-field">
+          <label class="modal-label">Your mission statement</label>
+          <textarea id="ob-mission" placeholder="e.g. I am building a career in software engineering. Every hour I invest today compounds tomorrow. Scrolling is the enemy." rows="4" style="min-height:100px"></textarea>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-ghost" onclick="obPrev(2)">← BACK</button>
+          <button class="btn-red" onclick="obNext(2)" style="flex:2">CONTINUE →</button>
+        </div>
+      </div>
+
+      <!-- STEP 3: Ready -->
+      <div class="ob-step" id="ob-step-3">
+        <div class="modal-eyebrow">// all systems go //</div>
+        <h3>War Room Ready.</h3>
+        <div class="jarvis-intro" id="ob-confirm-text" style="margin-bottom:16px"></div>
+        <p class="sub">JARVIS will track every session, badge every milestone and report back. You just need to show up and do the work.</p>
+        <div class="modal-actions">
+          <button class="btn-ghost" onclick="obPrev(3)">← BACK</button>
+          <button class="btn-red" onclick="obFinish()" style="flex:2">⚡ ACTIVATE WAR ROOM</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       SETTINGS MODAL
+  ══════════════════════════════════════════ -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal">
+      <div class="modal-eyebrow">// system config //</div>
+      <h3>Settings</h3>
+      <p class="sub">Update your name and mission statement. Changes apply immediately.</p>
+      <div class="modal-field">
+        <label class="modal-label">Your name / callsign</label>
+        <input type="text" id="set-name" placeholder="Your callsign" maxlength="30" />
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">Mission statement</label>
+        <textarea id="set-mission" rows="4" style="min-height:100px" placeholder="What are you building towards?"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-ghost" onclick="closeSettings()">CANCEL</button>
+        <button class="btn-red" onclick="saveSettings()" style="flex:2">SAVE CHANGES</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       INTENTION MODAL
+  ══════════════════════════════════════════ -->
+  <div class="modal-overlay" id="intentionModal">
+    <div class="modal">
+      <div class="modal-eyebrow">// session init //</div>
+      <h3>Lock In</h3>
+      <p class="sub" id="intention-sub">JARVIS IS STANDING BY. SET YOUR INTENTION — WHAT ARE YOU ATTACKING RIGHT NOW?</p>
+      <div class="modal-field">
+        <label class="modal-label">Session intention</label>
+        <input type="text" id="intentionInput" placeholder="e.g. Solve 3 linked list problems..." maxlength="80" />
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">Subject tag</label>
+        <div class="tag-pills" id="tagPicker">
+          <button class="tag-pill" data-tag="DSA"      onclick="selTag(this,'tagPicker')">DSA</button>
+          <button class="tag-pill" data-tag="Reading"  onclick="selTag(this,'tagPicker')">Reading</button>
+          <button class="tag-pill" data-tag="Project"  onclick="selTag(this,'tagPicker')">Project</button>
+          <button class="tag-pill" data-tag="Revision" onclick="selTag(this,'tagPicker')">Revision</button>
+          <button class="tag-pill" data-tag="Other"    onclick="selTag(this,'tagPicker')">Other</button>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-ghost" onclick="closeIntention()">CANCEL</button>
+        <button class="btn-red" onclick="confirmActivate()" style="flex:2">⚡ LOCK IN & ATTACK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       SUMMARY MODAL
+  ══════════════════════════════════════════ -->
+  <div class="modal-overlay" id="summaryModal">
+    <div class="modal">
+      <div class="modal-eyebrow" id="sumEyebrow">// session complete //</div>
+      <h3>Session Complete</h3>
+      <p class="sub" id="sumSub">JARVIS LOG: HERE'S WHAT YOU BUILT.</p>
+      <div class="summary-big" id="sumDur">00:00</div>
+      <div id="sumRows"></div>
+      <div class="modal-actions">
+        <button class="btn-red" onclick="$('summaryModal').classList.remove('show')" style="width:100%">✓ NOTED — KEEP GOING</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       MAIN
+  ══════════════════════════════════════════ -->
   <div class="shell">
 
-    <!-- TOP BAR -->
     <div class="topbar">
-      <div class="topbar-left">SYS:<span>ATTACK_MODE_v1.0</span> &nbsp;|&nbsp; OPERATOR:<span>YASH_BOSS</span></div>
+      <div class="topbar-id">SYS:<b>JARVIS</b> &nbsp;│&nbsp; OPERATOR:<b id="topName">—</b></div>
       <div class="topbar-right">
-        <button class="theme-btn" onclick="toggleTheme()">◐ TOGGLE THEME</button>
+        <button class="tb-btn" onclick="openSettings()">⚙ SETTINGS</button>
+        <button class="tb-btn" onclick="toggleTheme()">◐ THEME</button>
       </div>
     </div>
 
-    <!-- HERO -->
     <div class="hero">
-      <div class="hero-label">// personal operating system //</div>
-      <div class="hero-name">YASH<br><em>BOSS</em></div>
-      <div class="hero-sub">stop scrolling — start winning</div>
+      <div class="hero-eyebrow">// jarvis — personal attack system //</div>
+      <div class="hero-name" id="heroName">—<br><em>BOSS</em></div>
+      <div class="hero-sub">stop scrolling — start building</div>
+      <div class="hero-mission hidden" id="heroMission"></div>
     </div>
 
-    <!-- ATTACK TOGGLE -->
-    <div class="attack-zone">
-      <button class="attack-btn" id="attackBtn" onclick="toggleAttack()">
-        <span id="attackBtnText">⚡ ACTIVATE ATTACK MODE</span>
+    <div class="attack-wrap">
+      <button id="attackBtn" onclick="onAttackClick()">
+        <div class="fill"></div>
+        <span id="attackBtnTxt">⚡ ACTIVATE ATTACK MODE</span>
       </button>
-      <div class="attack-status" id="attackStatus">● STANDBY — YOU'RE WASTING TIME</div>
-      <div class="attack-timer" id="attackTimer">00:00:00</div>
+      <div class="attack-meta">
+        <div id="attackStatus">● STANDBY — YOU ARE WASTING TIME</div>
+        <div id="timerDisplay">00:00:00</div>
+        <div id="aib">
+          <span id="aib-tag" class="tag-pill"></span>
+          <span id="aib-txt"></span>
+        </div>
+      </div>
     </div>
 
-    <!-- MOTIVATIONAL QUOTE -->
     <div class="quote-bar">
-      <p id="quoteText"></p>
-      <cite id="quoteAuthor"></cite>
-      <button class="quote-next" onclick="nextQuote()" title="Next quote">→</button>
+      <p id="qText"></p><cite id="qAuthor"></cite>
+      <button class="qnext" onclick="nextQuote()">→</button>
     </div>
 
-    <!-- STATS -->
     <div class="stats-row">
-      <div class="stat-card">
-        <div class="stat-num" id="statStreak">0</div>
-        <div class="stat-label">🔥 Day Streak</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-num" id="statSessions">0</div>
-        <div class="stat-label">⚡ Attack Sessions</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-num" id="statShame">0</div>
-        <div class="stat-label">💀 Scroll Shames</div>
-      </div>
+      <div class="stat-card"><div class="stat-num" id="stStreak">0</div><div class="stat-label">🔥 Streak</div></div>
+      <div class="stat-card"><div class="stat-num" id="stSess">0</div><div class="stat-label">⚡ Sessions</div></div>
+      <div class="stat-card"><div class="stat-num" id="stHrs">0</div><div class="stat-label">⏱ Hrs This Week</div></div>
+      <div class="stat-card"><div class="stat-num" id="stShame">0</div><div class="stat-label">💀 Scroll Shames</div></div>
     </div>
 
-    <!-- DAILY GOALS -->
-    <div class="section">
-      <div class="section-head">
-        <h2>Daily Targets</h2>
-        <span class="tag">TODAY</span>
-      </div>
-      <div class="goals-add">
-        <input type="text" id="goalInput" placeholder="Add a target... (e.g. Solve 2 DSA problems)" onkeydown="if(event.key==='Enter')addGoal()" />
-        <button class="btn-primary" onclick="addGoal()">ADD</button>
-      </div>
-      <div class="goals-list" id="goalsList"></div>
-      <div class="goals-progress"><div class="goals-bar" id="goalsBar"></div></div>
-      <div class="goals-pct" id="goalsPct">0 / 0 COMPLETED</div>
+    <div class="tabs">
+      <button class="tab-btn active"  onclick="switchTab('today')">Today</button>
+      <button class="tab-btn"         onclick="switchTab('sessions')">Sessions</button>
+      <button class="tab-btn"         onclick="switchTab('report')">Report</button>
+      <button class="tab-btn"         onclick="switchTab('badges')">Badges</button>
+      <button class="tab-btn"         onclick="switchTab('log')">Learning Log</button>
     </div>
 
-    <!-- SCROLL SHAME -->
-    <div class="section">
-      <div class="section-head">
-        <h2>Scroll Shame</h2>
-        <span class="tag">CONFESS</span>
-      </div>
-      <div class="shame-zone">
-        <div class="shame-count" id="shameTodayCount">0</div>
-        <div class="shame-msg" id="shameMsg">press the button when you catch yourself scrolling</div>
-        <button class="shame-btn" onclick="addShame()">
-          📵 I WASTED TIME SCROLLING
-        </button>
-        <div class="shame-week">THIS WEEK: <span id="shameWeekCount">0</span> SCROLL SHAMES</div>
-      </div>
-    </div>
-
-    <!-- LEARNING LOG -->
-    <div class="section">
-      <div class="section-head">
-        <h2>Learning Log</h2>
-        <span class="tag" id="logCount">0 ENTRIES</span>
-      </div>
-      <div class="log-form">
-        <div class="log-row">
-          <input type="text" id="logTitle" placeholder="What did you learn? (e.g. Binary Search Trees)" />
-          <button class="btn-primary" onclick="addLog()">LOG IT</button>
+    <!-- TODAY -->
+    <div class="tab-panel active" id="tab-today">
+      <div style="margin-bottom:36px">
+        <div class="sec-head">
+          <h2>Daily Targets</h2>
+          <span class="sec-tag green" id="goalsTag">0/0</span>
         </div>
-        <textarea id="logBody" placeholder="Expand on it... key insight, how it applies, what to revisit."></textarea>
-      </div>
-      <div class="log-entries" id="logEntries"></div>
-    </div>
-
-    <!-- FOOTER -->
-    <div class="footer">
-      <div class="footer-left">BUILT FOR <span>YASH BOSS</span> — NO EXCUSES, ONLY EXECUTION</div>
-      <button class="reset-btn" onclick="resetDay()">↺ RESET DAY</button>
-    </div>
-
-  </div><!-- /shell -->
-
-  <script>
-    /* ───── STATE ───────────────────────────────────────── */
-    let attackActive  = false;
-    let attackStart   = null;
-    let timerInterval = null;
-
-    /* ───── QUOTES ──────────────────────────────────────── */
-    const quotes = [
-      { text: "You don't rise to the level of your goals. You fall to the level of your systems.", author: "James Clear" },
-      { text: "Hard work beats talent when talent doesn't work hard.", author: "Tim Notke" },
-      { text: "The man who moves a mountain begins by carrying small stones.", author: "Confucius" },
-      { text: "Every hour you scroll is an hour someone else is building their future.", author: "ATTACK MODE" },
-      { text: "Discipline is the bridge between goals and accomplishment.", author: "Jim Rohn" },
-      { text: "You have the same 24 hours as everyone who made it. Use them.", author: "ATTACK MODE" },
-      { text: "The successful warrior is the average man with laser-like focus.", author: "Bruce Lee" },
-      { text: "Stop waiting for motivation. Start building discipline.", author: "ATTACK MODE" },
-      { text: "Either you run the day or the day runs you.", author: "Jim Rohn" },
-      { text: "The cost of wasting today is paid tomorrow. With interest.", author: "ATTACK MODE" },
-      { text: "Success is nothing more than a few simple disciplines, practiced every day.", author: "Jim Rohn" },
-      { text: "Your future self is watching you right now through your memories.", author: "ATTACK MODE" },
-    ];
-    let quoteIdx = 0;
-
-    function renderQuote() {
-      const q = quotes[quoteIdx % quotes.length];
-      document.getElementById('quoteText').textContent   = `"${q.text}"`;
-      document.getElementById('quoteAuthor').textContent = `— ${q.author}`;
-    }
-    function nextQuote() {
-      quoteIdx = (quoteIdx + 1) % quotes.length;
-      renderQuote();
-    }
-
-    /* ───── THEME ───────────────────────────────────────── */
-    function toggleTheme() {
-      const html = document.documentElement;
-      const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-      html.setAttribute('data-theme', next);
-      localStorage.setItem('am_theme', next);
-    }
-
-    /* ───── ATTACK MODE ─────────────────────────────────── */
-    function toggleAttack() {
-      attackActive = !attackActive;
-      const btn     = document.getElementById('attackBtn');
-      const btnText = document.getElementById('attackBtnText');
-      const status  = document.getElementById('attackStatus');
-      const timer   = document.getElementById('attackTimer');
-      const overlay = document.getElementById('modeOverlay');
-
-      if (attackActive) {
-        attackStart = Date.now() - (parseInt(localStorage.getItem('am_elapsed') || 0));
-        btn.classList.add('active');
-        btnText.textContent = '🔴 DEACTIVATE ATTACK MODE';
-        status.textContent  = '● LOCKED IN — MAKE EVERY SECOND COUNT';
-        status.className    = 'attack-status on';
-        timer.className     = 'attack-timer on';
-        overlay.classList.add('show');
-        timerInterval = setInterval(tickTimer, 1000);
-
-        // increment sessions
-        const s = parseInt(localStorage.getItem('am_sessions') || 0) + 1;
-        localStorage.setItem('am_sessions', s);
-        // streak
-        updateStreak();
-      } else {
-        clearInterval(timerInterval);
-        const elapsed = Date.now() - attackStart;
-        localStorage.setItem('am_elapsed', elapsed);
-        btn.classList.remove('active');
-        btnText.textContent = '⚡ ACTIVATE ATTACK MODE';
-        status.textContent  = '● STANDBY — YOU\'RE WASTING TIME';
-        status.className    = 'attack-status';
-        timer.className     = 'attack-timer';
-        overlay.classList.remove('show');
-      }
-      renderStats();
-    }
-
-    function tickTimer() {
-      const elapsed = Math.floor((Date.now() - attackStart) / 1000);
-      const h = String(Math.floor(elapsed / 3600)).padStart(2,'0');
-      const m = String(Math.floor((elapsed % 3600) / 60)).padStart(2,'0');
-      const s = String(elapsed % 60).padStart(2,'0');
-      document.getElementById('attackTimer').textContent = `${h}:${m}:${s}`;
-    }
-
-    /* ───── STREAK ──────────────────────────────────────── */
-    function updateStreak() {
-      const today     = new Date().toDateString();
-      const lastDay   = localStorage.getItem('am_last_day');
-      let streak      = parseInt(localStorage.getItem('am_streak') || 0);
-      const yesterday = new Date(Date.now() - 86400000).toDateString();
-      if (lastDay === today) return;
-      if (lastDay === yesterday) streak++;
-      else streak = 1;
-      localStorage.setItem('am_streak', streak);
-      localStorage.setItem('am_last_day', today);
-    }
-
-    /* ───── SCROLL SHAME ────────────────────────────────── */
-    const shameMsgs = [
-      "bro... really? put the phone DOWN.",
-      "that's embarrassing. get back to work.",
-      "your future self is disappointed.",
-      "another one? stop it. seriously.",
-      "social media won. for now. fight back.",
-      "every scroll is a choice. make better ones.",
-      "this is not who you are. FOCUS.",
-      "you just chose distraction over your dreams.",
-    ];
-
-    function addShame() {
-      const today   = new Date().toDateString();
-      const stored  = JSON.parse(localStorage.getItem('am_shame') || '{}');
-      const week    = JSON.parse(localStorage.getItem('am_shame_week') || '[]');
-
-      // today count
-      if (!stored[today]) stored[today] = 0;
-      stored[today]++;
-      localStorage.setItem('am_shame', JSON.stringify(stored));
-
-      // week list
-      week.push(Date.now());
-      const weekAgo = Date.now() - 7*86400000;
-      const trimmed = week.filter(t => t > weekAgo);
-      localStorage.setItem('am_shame_week', JSON.stringify(trimmed));
-
-      // UI
-      const count   = stored[today];
-      const countEl = document.getElementById('shameTodayCount');
-      const msgEl   = document.getElementById('shameMsg');
-      countEl.textContent = count;
-      countEl.className   = count > 0 ? 'shame-count hot' : 'shame-count';
-      msgEl.textContent   = shameMsgs[Math.floor(Math.random() * shameMsgs.length)];
-      msgEl.className     = 'shame-msg show';
-      setTimeout(() => msgEl.className = 'shame-msg', 3500);
-
-      document.getElementById('shameWeekCount').textContent = trimmed.length;
-      document.getElementById('statShame').textContent      = trimmed.length;
-    }
-
-    function loadShame() {
-      const today   = new Date().toDateString();
-      const stored  = JSON.parse(localStorage.getItem('am_shame') || '{}');
-      const week    = JSON.parse(localStorage.getItem('am_shame_week') || '[]');
-      const weekAgo = Date.now() - 7*86400000;
-      const trimmed = week.filter(t => t > weekAgo);
-      const count   = stored[today] || 0;
-
-      document.getElementById('shameTodayCount').textContent = count;
-      if (count > 0) document.getElementById('shameTodayCount').classList.add('hot');
-      document.getElementById('shameWeekCount').textContent = trimmed.length;
-    }
-
-    /* ───── GOALS ───────────────────────────────────────── */
-    function addGoal() {
-      const input = document.getElementById('goalInput');
-      const text  = input.value.trim();
-      if (!text) return;
-      const goals = JSON.parse(localStorage.getItem('am_goals') || '[]');
-      goals.push({ id: Date.now(), text, done: false });
-      localStorage.setItem('am_goals', JSON.stringify(goals));
-      input.value = '';
-      renderGoals();
-    }
-
-    function toggleGoal(id) {
-      const goals = JSON.parse(localStorage.getItem('am_goals') || '[]');
-      const g     = goals.find(x => x.id === id);
-      if (g) g.done = !g.done;
-      localStorage.setItem('am_goals', JSON.stringify(goals));
-      renderGoals();
-    }
-
-    function deleteGoal(id) {
-      const goals = JSON.parse(localStorage.getItem('am_goals') || '[]').filter(x => x.id !== id);
-      localStorage.setItem('am_goals', JSON.stringify(goals));
-      renderGoals();
-    }
-
-    function renderGoals() {
-      const goals = JSON.parse(localStorage.getItem('am_goals') || '[]');
-      const list  = document.getElementById('goalsList');
-      const bar   = document.getElementById('goalsBar');
-      const pct   = document.getElementById('goalsPct');
-
-      if (!goals.length) {
-        list.innerHTML = '<div class="log-empty">NO TARGETS SET — ADD YOUR FIRST ONE ABOVE</div>';
-        bar.style.width = '0%';
-        pct.textContent = '0 / 0 COMPLETED';
-        return;
-      }
-      const done  = goals.filter(g => g.done).length;
-      const total = goals.length;
-      bar.style.width = `${Math.round((done/total)*100)}%`;
-      pct.textContent = `${done} / ${total} COMPLETED`;
-
-      list.innerHTML = goals.map(g => `
-        <div class="goal-item ${g.done ? 'done' : ''}" onclick="toggleGoal(${g.id})">
-          <div class="goal-check">${g.done ? '✓' : ''}</div>
-          <div class="goal-text">${escapeHtml(g.text)}</div>
-          <button class="goal-del" onclick="event.stopPropagation();deleteGoal(${g.id})">✕</button>
+        <div class="goals-add">
+          <input type="text" id="goalInput" placeholder="Add a target for today..." onkeydown="if(event.key==='Enter')addGoal()" />
+          <button class="btn-red" onclick="addGoal()">ADD</button>
         </div>
-      `).join('');
-    }
+        <div class="goals-list" id="goalsList"></div>
+        <div class="prog-wrap">
+          <div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+          <div class="prog-label" id="progLabel">0 / 0 COMPLETED</div>
+        </div>
+      </div>
+      <div>
+        <div class="sec-head"><h2>Scroll Shame</h2><span class="sec-tag">CONFESS</span></div>
+        <div class="shame-center">
+          <div class="shame-big" id="shameCount">0</div>
+          <div class="shame-roast" id="shameRoast">press when you catch yourself mindlessly scrolling</div>
+          <button class="shame-trigger" onclick="addShame()">📵 I WASTED TIME SCROLLING</button>
+          <div class="shame-week">THIS WEEK: <b id="shameWeek">0</b> SCROLL SHAMES</div>
+        </div>
+      </div>
+    </div>
 
-    /* ───── LEARNING LOG ────────────────────────────────── */
-    function addLog() {
-      const title = document.getElementById('logTitle').value.trim();
-      const body  = document.getElementById('logBody').value.trim();
-      if (!title) return;
-      const entries = JSON.parse(localStorage.getItem('am_log') || '[]');
-      entries.unshift({
-        id:    Date.now(),
-        title,
-        body,
-        date:  new Date().toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' })
-      });
-      localStorage.setItem('am_log', JSON.stringify(entries));
-      document.getElementById('logTitle').value = '';
-      document.getElementById('logBody').value  = '';
-      renderLog();
-    }
-
-    function deleteLog(id) {
-      const entries = JSON.parse(localStorage.getItem('am_log') || '[]').filter(e => e.id !== id);
-      localStorage.setItem('am_log', JSON.stringify(entries));
-      renderLog();
-    }
-
-    function renderLog() {
-      const entries = JSON.parse(localStorage.getItem('am_log') || '[]');
-      const el      = document.getElementById('logEntries');
-      const tag     = document.getElementById('logCount');
-      tag.textContent = `${entries.length} ENTRIES`;
-
-      if (!entries.length) {
-        el.innerHTML = '<div class="log-empty">NO ENTRIES YET — LOG YOUR FIRST LEARNING TODAY</div>';
-        return;
-      }
-      el.innerHTML = entries.map(e => `
-        <div class="log-entry">
-          <div class="log-entry-title">${escapeHtml(e.title)}</div>
-          ${e.body ? `<div class="log-entry-body">${escapeHtml(e.body)}</div>` : ''}
-          <div class="log-entry-meta">
-            <span class="log-entry-date">${e.date}</span>
-            <button class="log-entry-delete" onclick="deleteLog(${e.id})" title="Delete">✕</button>
+    <!-- SESSIONS -->
+    <div class="tab-panel" id="tab-sessions">
+      <div style="margin-bottom:32px">
+        <div class="sec-head"><h2>Weekly Focus</h2><span class="sec-tag">LAST 7 DAYS</span></div>
+        <div class="chart-wrap">
+          <div class="chart-inner" id="weekChart"></div>
+          <div class="chart-legend">
+            <div>
+              <div class="chart-total" id="chartTotalHrs">0h</div>
+              <div class="chart-total-label">Total this week</div>
+            </div>
+            <div style="margin-left:auto;display:flex;flex-wrap:wrap;gap:14px" id="tagLegend"></div>
           </div>
         </div>
-      `).join('');
+      </div>
+      <div>
+        <div class="sec-head"><h2>Session History</h2><span class="sec-tag" id="sessCountTag">0 SESSIONS</span></div>
+        <div id="sessHistory"></div>
+      </div>
+    </div>
+
+    <!-- REPORT -->
+    <div class="tab-panel" id="tab-report">
+      <div class="sec-head"><h2>Weekly Report</h2><span class="sec-tag yellow">THIS VS LAST WEEK</span></div>
+      <div class="report-grid" id="reportGrid"></div>
+      <div class="sec-head" style="margin-top:24px"><h2>Time by Subject</h2><span class="sec-tag">THIS WEEK</span></div>
+      <div class="chart-wrap"><div class="tag-breakdown" id="tagBreakdown"></div></div>
+    </div>
+
+    <!-- BADGES -->
+    <div class="tab-panel" id="tab-badges">
+      <div class="sec-head"><h2>Milestones</h2><span class="sec-tag" id="badgeCountTag">0 UNLOCKED</span></div>
+      <div class="badges-grid" id="badgesGrid"></div>
+    </div>
+
+    <!-- LOG -->
+    <div class="tab-panel" id="tab-log">
+      <div class="sec-head"><h2>Learning Log</h2><span class="sec-tag green" id="logTag">0 ENTRIES</span></div>
+      <div class="log-add">
+        <div class="row">
+          <input type="text" id="logTitle" placeholder="What did you learn today?" style="flex:1" onkeydown="if(event.key==='Enter')addLog()" />
+          <button class="btn-red" onclick="addLog()">LOG IT</button>
+        </div>
+        <textarea id="logBody" placeholder="Key insight, how it connects, what to revisit..."></textarea>
+        <div class="row mid" style="gap:12px">
+          <span style="font-size:10px;color:var(--text-dim);letter-spacing:.1em;text-transform:uppercase;white-space:nowrap">Tag:</span>
+          <div class="tag-pills" id="logTagPicker">
+            <button class="tag-pill" data-tag="DSA"      onclick="selTag(this,'logTagPicker')">DSA</button>
+            <button class="tag-pill" data-tag="Reading"  onclick="selTag(this,'logTagPicker')">Reading</button>
+            <button class="tag-pill" data-tag="Project"  onclick="selTag(this,'logTagPicker')">Project</button>
+            <button class="tag-pill" data-tag="Revision" onclick="selTag(this,'logTagPicker')">Revision</button>
+            <button class="tag-pill" data-tag="Other"    onclick="selTag(this,'logTagPicker')">Other</button>
+          </div>
+        </div>
+      </div>
+      <div class="log-list" id="logList"></div>
+    </div>
+
+    <div class="footer">
+      <div class="footer-id">JARVIS — BUILT FOR <b id="footName">OPERATOR</b> — NO EXCUSES</div>
+      <div class="footer-actions">
+        <button class="btn-ghost" onclick="resetDay()">↺ RESET DAY</button>
+        <button class="btn-ghost" onclick="clearAll()">⚠ CLEAR ALL</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  /* ═══════════════════════════════════════════════
+     UTILS
+  ═══════════════════════════════════════════════ */
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const ls = {
+    get: k => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
+    set: (k,v) => localStorage.setItem(k, JSON.stringify(v)),
+    del: k => localStorage.removeItem(k)
+  };
+  function today() { return new Date().toDateString(); }
+  function dayLabel(d) { return ['SUN','MON','TUE','WED','THU','FRI','SAT'][new Date(d).getDay()]; }
+  function fmtMs(ms) {
+    const s = Math.floor(ms/1000), h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sec = s%60;
+    if (h > 0) return `${h}h ${String(m).padStart(2,'0')}m`;
+    return `${String(m).padStart(2,'0')}m ${String(sec).padStart(2,'0')}s`;
+  }
+  function fmtClock(ms) {
+    const s = Math.floor(ms/1000);
+    return [Math.floor(s/3600), Math.floor((s%3600)/60), s%60].map(x => String(x).padStart(2,'0')).join(':');
+  }
+  const TAGS = ['DSA','Reading','Project','Revision','Other'];
+  function tagColor(t) {
+    return {DSA:'var(--blue)',Reading:'var(--green)',Project:'var(--yellow)',Revision:'var(--orange)',Other:'var(--purple)'}[t]||'var(--text)';
+  }
+
+  /* ═══════════════════════════════════════════════
+     PROFILE
+  ═══════════════════════════════════════════════ */
+  function getProfile() { return ls.get('am_profile') || { name: '', mission: '' }; }
+  function applyProfile() {
+    const p = getProfile();
+    const name = p.name || 'OPERATOR';
+    const parts = name.trim().split(/\s+/);
+    const first = parts[0].toUpperCase();
+    const rest  = parts.slice(1).join(' ').toUpperCase() || 'BOSS';
+
+    $('topName').textContent = name.toUpperCase();
+    $('footName').textContent = name.toUpperCase();
+    $('heroName').innerHTML = `${esc(first)}<br><em>${esc(rest)}</em>`;
+    document.title = `ATTACK MODE — ${name.toUpperCase()}`;
+
+    // Mission
+    const m = p.mission || '';
+    if (m) {
+      $('heroMission').textContent = m;
+      $('heroMission').classList.remove('hidden');
+    } else {
+      $('heroMission').classList.add('hidden');
     }
 
-    /* ───── STATS ───────────────────────────────────────── */
-    function renderStats() {
-      document.getElementById('statStreak').textContent   = localStorage.getItem('am_streak')   || 0;
-      document.getElementById('statSessions').textContent = localStorage.getItem('am_sessions') || 0;
-      const week    = JSON.parse(localStorage.getItem('am_shame_week') || '[]');
-      const weekAgo = Date.now() - 7*86400000;
-      document.getElementById('statShame').textContent    = week.filter(t => t > weekAgo).length;
+    // JARVIS personalised intention sub
+    $('intention-sub').textContent = `JARVIS IS STANDING BY, ${first}. SET YOUR INTENTION — WHAT ARE YOU ATTACKING RIGHT NOW?`;
+  }
+
+  /* ═══════════════════════════════════════════════
+     ONBOARDING
+  ═══════════════════════════════════════════════ */
+  let obStep = 1;
+  function showOnboarding() {
+    obStep = 1;
+    obRenderStep();
+    $('onboardModal').classList.add('show');
+  }
+  function obRenderStep() {
+    [1,2,3].forEach(i => {
+      $(`ob-step-${i}`).classList.toggle('active', i === obStep);
+      const dot = $(`od${i}`);
+      dot.className = 'ob-dot' + (i < obStep ? ' done' : i === obStep ? ' active' : '');
+    });
+  }
+  function obNext(step) {
+    if (step === 1) {
+      const name = $('ob-name').value.trim();
+      if (!name) { $('ob-name').focus(); $('ob-name').style.borderColor = 'var(--red)'; return; }
+      $('ob-name').style.borderColor = '';
+    }
+    if (step === 2) {
+      // allow skipping mission
+      const conf = $('ob-confirm-text');
+      const name = $('ob-name').value.trim() || 'OPERATOR';
+      const mission = $('ob-mission').value.trim();
+      conf.innerHTML = `<b>NAME:</b> ${esc(name.toUpperCase())}<br>`
+        + (mission ? `<b>MISSION:</b> ${esc(mission)}` : '<b>MISSION:</b> <span style="color:var(--text-dim)">Not set — you can add this later in settings.</span>');
+    }
+    obStep = Math.min(3, step + 1);
+    obRenderStep();
+  }
+  function obPrev(step) { obStep = Math.max(1, step - 1); obRenderStep(); }
+  function obFinish() {
+    const name    = $('ob-name').value.trim();
+    const mission = $('ob-mission').value.trim();
+    ls.set('am_profile', { name, mission });
+    ls.set('am_onboarded', true);
+    $('onboardModal').classList.remove('show');
+    applyProfile();
+  }
+  $('onboardModal').addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      if (obStep === 1) obNext(1);
+      else if (obStep === 2) obNext(2);
+      else obFinish();
+    }
+  });
+
+  /* ═══════════════════════════════════════════════
+     SETTINGS
+  ═══════════════════════════════════════════════ */
+  function openSettings() {
+    const p = getProfile();
+    $('set-name').value    = p.name    || '';
+    $('set-mission').value = p.mission || '';
+    $('settingsModal').classList.add('show');
+    setTimeout(() => $('set-name').focus(), 100);
+  }
+  function closeSettings() { $('settingsModal').classList.remove('show'); }
+  function saveSettings() {
+    const name    = $('set-name').value.trim();
+    const mission = $('set-mission').value.trim();
+    ls.set('am_profile', { name, mission });
+    closeSettings();
+    applyProfile();
+  }
+  $('settingsModal').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') saveSettings(); });
+
+  /* ═══════════════════════════════════════════════
+     THEME
+  ═══════════════════════════════════════════════ */
+  function toggleTheme() {
+    const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    ls.set('am_theme', next);
+  }
+
+  /* ═══════════════════════════════════════════════
+     TABS
+  ═══════════════════════════════════════════════ */
+  function switchTab(name) {
+    const names = ['today','sessions','report','badges','log'];
+    document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', names[i] === name));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-'+name));
+    if (name === 'sessions') renderSessionsTab();
+    if (name === 'report')   renderReport();
+    if (name === 'badges')   renderBadges();
+  }
+
+  /* ═══════════════════════════════════════════════
+     QUOTES — JARVIS personalised
+  ═══════════════════════════════════════════════ */
+  const quotes = [
+    { text:"You don't rise to your goals. You fall to your systems.", author:"James Clear" },
+    { text:"Hard work beats talent when talent doesn't work hard.", author:"Tim Notke" },
+    { text:"Every hour you scroll is an hour someone else is building their future.", author:"JARVIS" },
+    { text:"Discipline is the bridge between goals and accomplishment.", author:"Jim Rohn" },
+    { text:"The successful warrior is the average man with laser-like focus.", author:"Bruce Lee" },
+    { text:"Either you run the day or the day runs you.", author:"Jim Rohn" },
+    { text:"The cost of wasting today is paid tomorrow. With interest.", author:"JARVIS" },
+    { text:"Stop waiting for motivation. Start building discipline.", author:"JARVIS" },
+    { text:"Your future self is watching you right now through your memories.", author:"JARVIS" },
+    { text:"The man who moves a mountain begins by carrying small stones.", author:"Confucius" },
+    { text:"We are what we repeatedly do. Excellence is not an act — it is a habit.", author:"Aristotle" },
+    { text:"You have the same 24 hours. What you do with them decides everything.", author:"JARVIS" },
+    { text:"Attention is the rarest and purest form of generosity. Don't give it to a feed.", author:"JARVIS" },
+    { text:"The difference between who you are and who you want to be is what you do.", author:"JARVIS" },
+  ];
+  let qi = Math.floor(Math.random() * quotes.length);
+  function renderQuote() {
+    const q = quotes[qi % quotes.length];
+    $('qText').textContent   = `"${q.text}"`;
+    $('qAuthor').textContent = `— ${q.author}`;
+  }
+  function nextQuote() { qi = (qi+1) % quotes.length; renderQuote(); }
+
+  /* ═══════════════════════════════════════════════
+     ATTACK MODE
+  ═══════════════════════════════════════════════ */
+  let attackActive = false, attackStart = null, timerTick = null;
+  let pendingTag = '';
+
+  function onAttackClick() {
+    if (attackActive) deactivate();
+    else openIntention();
+  }
+
+  // Intention
+  function openIntention() {
+    $('intentionInput').value = '';
+    pendingTag = '';
+    document.querySelectorAll('#tagPicker .tag-pill').forEach(p => p.className = 'tag-pill');
+    $('intentionModal').classList.add('show');
+    setTimeout(() => $('intentionInput').focus(), 100);
+  }
+  function closeIntention() { $('intentionModal').classList.remove('show'); }
+  function selTag(el, pickerId) {
+    document.querySelectorAll(`#${pickerId} .tag-pill`).forEach(p => p.className = 'tag-pill');
+    const tag = el.dataset.tag;
+    if (pickerId === 'tagPicker') pendingTag = tag;
+    else currentLogTag = tag;
+    el.className = `tag-pill sel-${tag}`;
+  }
+  function confirmActivate() {
+    const intention = $('intentionInput').value.trim() || 'Focus session';
+    const tag = pendingTag || 'Other';
+    closeIntention();
+    activate(intention, tag);
+  }
+  $('intentionModal').addEventListener('keydown', e => { if (e.key === 'Enter') confirmActivate(); });
+
+  function activate(intention, tag) {
+    attackActive = true;
+    attackStart  = Date.now();
+    ls.set('am_cur', { intention, tag, start: attackStart });
+
+    $('attackBtn').classList.add('active');
+    $('attackBtnTxt').textContent = '🔴 DEACTIVATE ATTACK MODE';
+    $('attackStatus').textContent = '● LOCKED IN — MAKE EVERY SECOND COUNT';
+    $('attackStatus').className   = 'attack-status on';
+    $('timerDisplay').className   = 'on';
+    $('activeLine').classList.add('show');
+    $('aib-tag').textContent  = tag;
+    $('aib-tag').className    = `tag-pill tc-${tag}`;
+    $('aib-txt').textContent  = intention;
+    $('aib').classList.add('show');
+
+    timerTick = setInterval(() => { $('timerDisplay').textContent = fmtClock(Date.now() - attackStart); }, 1000);
+    updateStreak(); renderStats();
+  }
+
+  function deactivate() {
+    clearInterval(timerTick);
+    attackActive = false;
+    const dur = Date.now() - attackStart;
+    const cur = ls.get('am_cur') || {};
+    const sess = { id: Date.now(), intention: cur.intention||'Focus session', tag: cur.tag||'Other', start: attackStart, end: Date.now(), dur, date: today() };
+
+    const sessions = ls.get('am_sessions') || [];
+    sessions.unshift(sess);
+    ls.set('am_sessions', sessions);
+    ls.del('am_cur');
+
+    const name = (getProfile().name || 'OPERATOR').split(/\s+/)[0].toUpperCase();
+    $('attackBtn').classList.remove('active');
+    $('attackBtnTxt').textContent = '⚡ ACTIVATE ATTACK MODE';
+    $('attackStatus').textContent = '● STANDBY — YOU ARE WASTING TIME';
+    $('attackStatus').className   = 'attack-status';
+    $('timerDisplay').className   = '';
+    $('timerDisplay').textContent = '00:00:00';
+    $('activeLine').classList.remove('show');
+    $('aib').classList.remove('show');
+
+    checkBadges(); renderStats(); showSummary(sess, name);
+  }
+
+  // Summary
+  function showSummary(sess, name) {
+    const sessions = ls.get('am_sessions') || [];
+    const todaySess = sessions.filter(s => s.date === today());
+    const totalToday = todaySess.reduce((a,s) => a+s.dur, 0);
+    $('sumDur').textContent = fmtMs(sess.dur);
+    $('sumSub').textContent = `JARVIS LOG: GOOD WORK, ${name}. HERE'S WHAT YOU BUILT.`;
+    $('sumRows').innerHTML = `
+      <div class="summary-row"><span class="lbl">Intention</span><span class="val">${esc(sess.intention)}</span></div>
+      <div class="summary-row"><span class="lbl">Subject</span><span class="val"><span class="tag-pill tc-${sess.tag}" style="font-size:11px;padding:2px 8px">${sess.tag}</span></span></div>
+      <div class="summary-row"><span class="lbl">Session time</span><span class="val">${fmtMs(sess.dur)}</span></div>
+      <div class="summary-row"><span class="lbl">Total today</span><span class="val">${fmtMs(totalToday)}</span></div>
+      <div class="summary-row"><span class="lbl">Sessions today</span><span class="val">${todaySess.length}</span></div>
+    `;
+    $('summaryModal').classList.add('show');
+  }
+
+  /* ═══════════════════════════════════════════════
+     STREAK
+  ═══════════════════════════════════════════════ */
+  function updateStreak() {
+    const t = today(), y = new Date(Date.now()-86400000).toDateString();
+    const last = ls.get('am_last_day');
+    let streak = parseInt(ls.get('am_streak')||0);
+    if (last === t) return;
+    streak = last === y ? streak+1 : 1;
+    ls.set('am_streak', streak); ls.set('am_last_day', t);
+  }
+
+  /* ═══════════════════════════════════════════════
+     STATS
+  ═══════════════════════════════════════════════ */
+  function renderStats() {
+    const sessions = ls.get('am_sessions') || [];
+    const wa = Date.now() - 7*86400000;
+    const wk = sessions.filter(s => s.start > wa);
+    const wkMs = wk.reduce((a,s)=>a+s.dur,0);
+    $('stStreak').textContent = ls.get('am_streak')||0;
+    $('stSess').textContent   = sessions.length;
+    $('stHrs').textContent    = (wkMs/3600000).toFixed(1);
+    const shame = (ls.get('am_shame_week')||[]).filter(t=>t>wa);
+    $('stShame').textContent  = shame.length;
+  }
+
+  /* ═══════════════════════════════════════════════
+     SESSIONS TAB
+  ═══════════════════════════════════════════════ */
+  function renderSessionsTab() {
+    // Chart
+    const sessions = ls.get('am_sessions') || [];
+    const days = [];
+    for (let i=6;i>=0;i--) {
+      const d = new Date(Date.now()-i*86400000), key = d.toDateString();
+      const ms = sessions.filter(s=>s.date===key).reduce((a,s)=>a+s.dur,0);
+      days.push({ key, label: dayLabel(key), hrs: ms/3600000, isToday: i===0 });
+    }
+    const maxHrs = Math.max(...days.map(d=>d.hrs), 0.5);
+    const totalWk = days.reduce((a,d)=>a+d.hrs,0);
+    $('weekChart').innerHTML = days.map(d => `
+      <div class="chart-col">
+        <div class="chart-bar-wrap">
+          <div class="chart-bar ${d.isToday?'today':d.hrs>0?'has-data':''}" style="height:${Math.max(4,Math.round((d.hrs/maxHrs)*100))}%"></div>
+        </div>
+        <div class="chart-hrs">${d.hrs>0?d.hrs.toFixed(1)+'h':''}</div>
+        <div class="chart-day ${d.isToday?'today':''}">${d.label}${d.isToday?'*':''}</div>
+      </div>`).join('');
+    $('chartTotalHrs').textContent = totalWk.toFixed(1)+'h';
+
+    const tagMs = {}; TAGS.forEach(t=>tagMs[t]=0);
+    sessions.filter(s=>s.start>Date.now()-7*86400000).forEach(s=>{tagMs[s.tag]=(tagMs[s.tag]||0)+s.dur;});
+    $('tagLegend').innerHTML = TAGS.filter(t=>tagMs[t]>0).map(t =>
+      `<div style="display:flex;align-items:center;gap:5px">
+        <span class="tag-pill tc-${t}" style="font-size:9px;padding:2px 7px">${t}</span>
+        <span style="font-size:10px;color:var(--text-dim)">${(tagMs[t]/3600000).toFixed(1)}h</span>
+      </div>`).join('');
+
+    // History
+    $('sessCountTag').textContent = `${sessions.length} SESSIONS`;
+    if (!sessions.length) { $('sessHistory').innerHTML = '<div class="empty">NO SESSIONS YET — ACTIVATE ATTACK MODE TO START</div>'; return; }
+    const grouped = {};
+    sessions.forEach(s=>{if(!grouped[s.date])grouped[s.date]=[];grouped[s.date].push(s);});
+    let html = '';
+    Object.entries(grouped).forEach(([date,arr])=>{
+      const totalMs = arr.reduce((a,s)=>a+s.dur,0);
+      html += `<div style="margin-bottom:18px">
+        <div style="font-size:10px;letter-spacing:.12em;color:var(--text-dim);text-transform:uppercase;margin-bottom:8px;display:flex;justify-content:space-between">
+          <span>${date}</span><span style="color:var(--red)">${fmtMs(totalMs)} total</span>
+        </div>
+        <div class="sess-list">${arr.map(s=>`
+          <div class="sess-item">
+            <div class="sess-dur">${fmtMs(s.dur)}</div>
+            <div class="sess-body">
+              <div class="sess-intention">${esc(s.intention)}</div>
+              <div class="sess-date">
+                <span class="tag-pill tc-${s.tag}" style="font-size:9px;padding:1px 6px;margin-right:6px">${s.tag}</span>
+                ${new Date(s.start).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}
+              </div>
+            </div>
+            <button class="sess-del" onclick="deleteSess(${s.id})">✕</button>
+          </div>`).join('')}
+        </div>
+      </div>`;
+    });
+    $('sessHistory').innerHTML = html;
+  }
+  function deleteSess(id) {
+    ls.set('am_sessions',(ls.get('am_sessions')||[]).filter(s=>s.id!==id));
+    renderSessionsTab(); renderStats();
+  }
+
+  /* ═══════════════════════════════════════════════
+     REPORT TAB
+  ═══════════════════════════════════════════════ */
+  function renderReport() {
+    const sessions = ls.get('am_sessions') || [];
+    const now = Date.now(), wa = now-7*86400000, wa2 = now-14*86400000;
+    const thisWk = sessions.filter(s=>s.start>wa), lastWk = sessions.filter(s=>s.start>wa2&&s.start<=wa);
+    const thisHrs = thisWk.reduce((a,s)=>a+s.dur,0)/3600000;
+    const lastHrs = lastWk.reduce((a,s)=>a+s.dur,0)/3600000;
+    const goals = ls.get('am_goals')||[];
+    const gPct = goals.length ? Math.round((goals.filter(g=>g.done).length/goals.length)*100) : 0;
+    const shameAll = ls.get('am_shame_week')||[];
+    const thisSh = shameAll.filter(t=>t>wa).length, lastSh = shameAll.filter(t=>t>wa2&&t<=wa).length;
+    function vs(a,b,low=false) {
+      if (b===0&&a===0) return `<span class="same">— no change</span>`;
+      if (b===0) return `<span class="up">↑ new this week</span>`;
+      const pct = Math.round(((a-b)/b)*100);
+      const cls = low?(pct<=0?'up':'down'):(pct>=0?'up':'down');
+      return `<span class="${cls}">${pct>=0?'↑':'↓'} ${Math.abs(pct)}% vs last week</span>`;
+    }
+    $('reportGrid').innerHTML = `
+      <div class="report-card">
+        <div class="report-card-head">Focus Hours</div>
+        <div class="report-metric"><div class="report-metric-big">${thisHrs.toFixed(1)}</div><div class="report-metric-sub">hrs this week</div></div>
+        <div class="report-vs">${vs(thisHrs,lastHrs)} &nbsp;|&nbsp; last: ${lastHrs.toFixed(1)}h</div>
+      </div>
+      <div class="report-card">
+        <div class="report-card-head">Sessions</div>
+        <div class="report-metric"><div class="report-metric-big">${thisWk.length}</div><div class="report-metric-sub">this week</div></div>
+        <div class="report-vs">${vs(thisWk.length,lastWk.length)} &nbsp;|&nbsp; last: ${lastWk.length}</div>
+      </div>
+      <div class="report-card">
+        <div class="report-card-head">Today's Goals</div>
+        <div class="report-metric"><div class="report-metric-big">${gPct}</div><div class="report-metric-sub">% completed</div></div>
+        <div class="report-vs" style="color:var(--text-dim);font-size:10px;letter-spacing:.06em">${goals.filter(g=>g.done).length} / ${goals.length} targets hit</div>
+      </div>
+      <div class="report-card">
+        <div class="report-card-head">Scroll Shames</div>
+        <div class="report-metric"><div class="report-metric-big">${thisSh}</div><div class="report-metric-sub">this week</div></div>
+        <div class="report-vs">${vs(thisSh,lastSh,true)} &nbsp;|&nbsp; last: ${lastSh}</div>
+      </div>`;
+    const tagMs = {}; TAGS.forEach(t=>tagMs[t]=0);
+    thisWk.forEach(s=>{tagMs[s.tag]=(tagMs[s.tag]||0)+s.dur;});
+    const maxMs = Math.max(...Object.values(tagMs),1);
+    $('tagBreakdown').innerHTML = TAGS.map(t=>`
+      <div class="tag-row">
+        <div class="tag-row-label" style="color:${tagColor(t)}">${t}</div>
+        <div class="tag-row-bar"><div class="tag-row-fill fill-${t}" style="width:${Math.round((tagMs[t]/maxMs)*100)}%"></div></div>
+        <div class="tag-row-val">${tagMs[t]>0?(tagMs[t]/3600000).toFixed(1)+'h':'—'}</div>
+      </div>`).join('');
+  }
+
+  /* ═══════════════════════════════════════════════
+     BADGES
+  ═══════════════════════════════════════════════ */
+  const BADGES = [
+    { id:'first',      icon:'⚡', name:'Activated',       desc:'Complete your first Attack Mode session',         check:(s)=>s.length>=1 },
+    { id:'streak3',    icon:'🔥', name:'On Fire',          desc:'Maintain a 3-day attack streak',                  check:(_,st)=>st>=3 },
+    { id:'streak7',    icon:'💥', name:'War Machine',      desc:'7 consecutive attack days',                       check:(_,st)=>st>=7 },
+    { id:'streak30',   icon:'👑', name:'Unstoppable',      desc:'30-day streak — you are built different',         check:(_,st)=>st>=30 },
+    { id:'h5',         icon:'⏱', name:'5 Hours In',       desc:'Log 5 total focus hours',                         check:(s)=>s.reduce((a,x)=>a+x.dur,0)>=5*3600000 },
+    { id:'h25',        icon:'🧠', name:'Deep Work',        desc:'25 total hours of focused work',                  check:(s)=>s.reduce((a,x)=>a+x.dur,0)>=25*3600000 },
+    { id:'h100',       icon:'🏆', name:'Century',          desc:'100 total focus hours logged',                    check:(s)=>s.reduce((a,x)=>a+x.dur,0)>=100*3600000 },
+    { id:'sess10',     icon:'📈', name:'Building Habits',  desc:'10 completed attack sessions',                    check:(s)=>s.length>=10 },
+    { id:'sess50',     icon:'🎯', name:'Sharpshooter',     desc:'50 attack sessions completed',                    check:(s)=>s.length>=50 },
+    { id:'dsa5',       icon:'💻', name:'DSA Warrior',      desc:'5 sessions tagged as DSA',                        check:(s)=>s.filter(x=>x.tag==='DSA').length>=5 },
+    { id:'read5',      icon:'📚', name:'Bookworm',         desc:'5 sessions tagged as Reading',                    check:(s)=>s.filter(x=>x.tag==='Reading').length>=5 },
+    { id:'log5',       icon:'✍️', name:'Knowledge Keeper', desc:'5 learning log entries',                          check:(_,__,l)=>l.length>=5 },
+    { id:'log20',      icon:'🗂', name:'Archives',         desc:'20 learning log entries',                         check:(_,__,l)=>l.length>=20 },
+    { id:'shame0',     icon:'🧘', name:'Clean Day',        desc:'Active streak with 0 scroll shames today',        check:(_,st,__,sh)=>sh===0&&st>0 },
+  ];
+  function checkBadges() {
+    const sessions = ls.get('am_sessions')||[], streak = parseInt(ls.get('am_streak')||0);
+    const log = ls.get('am_log')||[], shame = (ls.get('am_shame')||{})[today()]||0;
+    const unlocked = ls.get('am_badges')||{};
+    const now = Date.now(); const newOnes = {};
+    BADGES.forEach(b => { if (!unlocked[b.id] && b.check(sessions,streak,log,shame)) newOnes[b.id]=now; });
+    if (Object.keys(newOnes).length) ls.set('am_badges',{...unlocked,...newOnes});
+  }
+  function renderBadges() {
+    checkBadges();
+    const sessions = ls.get('am_sessions')||[], streak = parseInt(ls.get('am_streak')||0);
+    const log = ls.get('am_log')||[], shame = (ls.get('am_shame')||{})[today()]||0;
+    const unlocked = ls.get('am_badges')||{}, recent = Date.now()-300000;
+    const cnt = BADGES.filter(b=>unlocked[b.id]).length;
+    $('badgeCountTag').textContent = `${cnt} / ${BADGES.length} UNLOCKED`;
+    $('badgesGrid').innerHTML = BADGES.map(b => {
+      const on = !!unlocked[b.id], isNew = on && unlocked[b.id]>recent;
+      return `<div class="badge ${on?'unlocked':''}">
+        ${isNew?'<div class="badge-new">NEW</div>':''}
+        <div class="badge-icon">${b.icon}</div>
+        <div class="badge-name">${b.name}</div>
+        <div class="badge-desc">${b.desc}</div>
+        <div class="badge-status">${on?'✓ UNLOCKED':'LOCKED'}</div>
+      </div>`;
+    }).join('');
+  }
+
+  /* ═══════════════════════════════════════════════
+     GOALS
+  ═══════════════════════════════════════════════ */
+  function addGoal() {
+    const input = $('goalInput'), text = input.value.trim();
+    if (!text) return;
+    const goals = ls.get('am_goals')||[];
+    goals.push({id:Date.now(),text,done:false});
+    ls.set('am_goals',goals); input.value=''; renderGoals();
+  }
+  function toggleGoal(id) {
+    const goals = ls.get('am_goals')||[];
+    const g = goals.find(x=>x.id===id); if (g) g.done=!g.done;
+    ls.set('am_goals',goals); renderGoals(); checkBadges();
+  }
+  function deleteGoal(id) { ls.set('am_goals',(ls.get('am_goals')||[]).filter(x=>x.id!==id)); renderGoals(); }
+  function renderGoals() {
+    const goals = ls.get('am_goals')||[];
+    const done=goals.filter(g=>g.done).length, total=goals.length;
+    const pct = total?Math.round((done/total)*100):0;
+    $('goalsTag').textContent = `${done}/${total}`;
+    $('progFill').style.width = pct+'%';
+    $('progLabel').textContent = `${done} / ${total} COMPLETED`;
+    if (!goals.length) { $('goalsList').innerHTML='<div class="empty">SET YOUR TARGETS FOR TODAY</div>'; return; }
+    $('goalsList').innerHTML = goals.map(g=>`
+      <div class="goal-item ${g.done?'done':''}" onclick="toggleGoal(${g.id})">
+        <div class="g-check">${g.done?'✓':''}</div>
+        <div class="g-text">${esc(g.text)}</div>
+        <button class="g-del" onclick="event.stopPropagation();deleteGoal(${g.id})">✕</button>
+      </div>`).join('');
+  }
+
+  /* ═══════════════════════════════════════════════
+     SCROLL SHAME
+  ═══════════════════════════════════════════════ */
+  const roasts = [
+    "bro... really? put the phone DOWN.",
+    "JARVIS is disappointed in you right now.",
+    "your future self is watching. and cringing.",
+    "another one? stop it. seriously.",
+    "social media won that round. fight back.",
+    "every scroll is a choice. make better ones.",
+    "this is not who you are. FOCUS.",
+    "you just chose distraction over your dreams.",
+    "remember why you built this dashboard. GET BACK.",
+    "that feed will exist forever. your goals won't wait.",
+  ];
+  function addShame() {
+    const t=today(), data=ls.get('am_shame')||{}, week=ls.get('am_shame_week')||[];
+    data[t]=(data[t]||0)+1; week.push(Date.now());
+    ls.set('am_shame',data);
+    const trimmed=week.filter(x=>x>Date.now()-7*86400000); ls.set('am_shame_week',trimmed);
+    const count=data[t];
+    $('shameCount').textContent=count; $('shameCount').className='shame-big hot';
+    const r=$('shameRoast'); r.textContent=roasts[Math.floor(Math.random()*roasts.length)]; r.className='shame-roast fire';
+    setTimeout(()=>r.className='shame-roast',4000);
+    $('shameWeek').textContent=trimmed.length; renderStats();
+  }
+  function loadShame() {
+    const data=ls.get('am_shame')||{}, week=(ls.get('am_shame_week')||[]).filter(t=>t>Date.now()-7*86400000);
+    const c=data[today()]||0; $('shameCount').textContent=c;
+    if(c>0) $('shameCount').classList.add('hot');
+    $('shameWeek').textContent=week.length;
+  }
+
+  /* ═══════════════════════════════════════════════
+     LEARNING LOG
+  ═══════════════════════════════════════════════ */
+  let currentLogTag = '';
+  function addLog() {
+    const title=$('logTitle').value.trim(), body=$('logBody').value.trim();
+    if(!title) return;
+    const log=ls.get('am_log')||[];
+    log.unshift({id:Date.now(),title,body,tag:currentLogTag||'Other',date:new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})});
+    ls.set('am_log',log);
+    $('logTitle').value=''; $('logBody').value=''; currentLogTag='';
+    document.querySelectorAll('#logTagPicker .tag-pill').forEach(p=>p.className='tag-pill');
+    renderLog(); checkBadges();
+  }
+  function deleteLog(id) { ls.set('am_log',(ls.get('am_log')||[]).filter(e=>e.id!==id)); renderLog(); }
+  function renderLog() {
+    const log=ls.get('am_log')||[];
+    $('logTag').textContent=`${log.length} ENTRIES`;
+    if(!log.length){$('logList').innerHTML='<div class="empty">NO ENTRIES YET — LOG YOUR FIRST LEARNING TODAY</div>';return;}
+    $('logList').innerHTML=log.map(e=>`
+      <div class="log-entry">
+        <div class="log-entry-title">${esc(e.title)}</div>
+        ${e.body?`<div class="log-entry-body">${esc(e.body)}</div>`:''}
+        <div class="log-entry-foot">
+          <div class="log-entry-date">
+            <span class="tag-pill tc-${e.tag||'Other'}" style="font-size:9px;padding:1px 6px;margin-right:6px">${e.tag||'Other'}</span>
+            ${e.date}
+          </div>
+          <button class="log-entry-del" onclick="deleteLog(${e.id})">✕</button>
+        </div>
+      </div>`).join('');
+  }
+
+  /* ═══════════════════════════════════════════════
+     RESET / CLEAR
+  ═══════════════════════════════════════════════ */
+  function resetDay() {
+    if(!confirm('Reset today\'s goals and timer? Sessions and log are kept.')) return;
+    ls.del('am_goals'); ls.del('am_cur');
+    if(timerTick) clearInterval(timerTick);
+    if(attackActive){
+      attackActive=false;
+      $('attackBtn').classList.remove('active');
+      $('attackBtnTxt').textContent='⚡ ACTIVATE ATTACK MODE';
+      $('attackStatus').textContent='● STANDBY — YOU ARE WASTING TIME';
+      $('attackStatus').className='attack-status';
+      $('timerDisplay').className=''; $('timerDisplay').textContent='00:00:00';
+      $('activeLine').classList.remove('show'); $('aib').classList.remove('show');
+    }
+    renderGoals(); renderStats();
+  }
+  function clearAll() {
+    if(!confirm('⚠ Delete ALL data — sessions, log, badges, streak? This cannot be undone.')) return;
+    const theme=ls.get('am_theme'); localStorage.clear(); if(theme) ls.set('am_theme',theme);
+    location.reload();
+  }
+
+  /* ═══════════════════════════════════════════════
+     INIT
+  ═══════════════════════════════════════════════ */
+  (function init() {
+    // Theme
+    const t=ls.get('am_theme'); if(t) document.documentElement.setAttribute('data-theme',t);
+
+    // Onboarding check
+    if(!ls.get('am_onboarded')) {
+      showOnboarding();
+    } else {
+      applyProfile();
     }
 
-    /* ───── RESET DAY ───────────────────────────────────── */
-    function resetDay() {
-      if (!confirm('Reset today\'s goals? (Log and stats are kept)')) return;
-      localStorage.removeItem('am_goals');
-      localStorage.removeItem('am_elapsed');
-      if (timerInterval) clearInterval(timerInterval);
-      if (attackActive) toggleAttack();
-      document.getElementById('attackTimer').textContent = '00:00:00';
-      renderGoals();
+    // Restore session if page was refreshed mid-attack
+    const cur=ls.get('am_cur');
+    if(cur&&cur.start){
+      attackStart=cur.start; attackActive=true;
+      $('attackBtn').classList.add('active');
+      $('attackBtnTxt').textContent='🔴 DEACTIVATE ATTACK MODE';
+      $('attackStatus').textContent='● LOCKED IN — MAKE EVERY SECOND COUNT';
+      $('attackStatus').className='attack-status on';
+      $('timerDisplay').className='on';
+      $('activeLine').classList.add('show');
+      $('aib-tag').textContent=cur.tag; $('aib-tag').className=`tag-pill tc-${cur.tag}`;
+      $('aib-txt').textContent=cur.intention; $('aib').classList.add('show');
+      timerTick=setInterval(()=>{$('timerDisplay').textContent=fmtClock(Date.now()-attackStart);},1000);
     }
 
-    /* ───── UTILS ───────────────────────────────────────── */
-    function escapeHtml(s) {
-      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    }
-
-    /* ───── INIT ────────────────────────────────────────── */
-    (function init() {
-      // theme
-      const saved = localStorage.getItem('am_theme');
-      if (saved) document.documentElement.setAttribute('data-theme', saved);
-
-      // quote
-      quoteIdx = Math.floor(Math.random() * quotes.length);
-      renderQuote();
-
-      // cycle quote every 30s
-      setInterval(nextQuote, 30000);
-
-      // restore timer if session was open
-      const elapsed = parseInt(localStorage.getItem('am_elapsed') || 0);
-      if (elapsed > 0) {
-        const h = String(Math.floor(elapsed/1000/3600)).padStart(2,'0');
-        const m = String(Math.floor((elapsed/1000%3600)/60)).padStart(2,'0');
-        const s = String(Math.floor(elapsed/1000%60)).padStart(2,'0');
-        document.getElementById('attackTimer').textContent = `${h}:${m}:${s}`;
-      }
-
-      loadShame();
-      renderGoals();
-      renderLog();
-      renderStats();
-
-      // Enter key for log
-      document.getElementById('logTitle').addEventListener('keydown', e => {
-        if (e.key === 'Enter') addLog();
-      });
-    })();
+    renderQuote(); setInterval(nextQuote, 30000);
+    loadShame(); renderGoals(); renderLog(); renderStats(); checkBadges();
+  })();
   </script>
 </body>
 </html>
